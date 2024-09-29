@@ -9,5 +9,4 @@ public class SixthsenseApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SixthsenseApplication.class, args);
 	}
-
 }
