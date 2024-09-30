@@ -1,0 +1,76 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* 화면 전체를 채우도록 설정 */
+}
+
+.signup-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 400px;
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    #fafafa
+  ); /* 박스에 은은한 그라데이션 적용 */
+  padding: 30px;
+  border-radius: 15px; /* 모서리를 더 둥글게 설정 */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* 그림자 추가로 입체감 추가 */
+}
+
+.signup-form {
+  width: 100%;
+}
+
+h2 {
+  text-align: center;
+}
+
+form div {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 5px; /* 인풋 필드도 모서리 둥글게 설정 */
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #3c78e0;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+button:hover {
+  background-color: #335ebf;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 마우스 오버 시 박스 그림자 추가 */
+}
+
+button:disabled {
+  background-color: #e6e6e6;
+  color: #a0a0a0;
+  border: 2px solid #ccc;
+}
+
+.error-message {
+  color: red;
+  margin-top: 15px;
+  font-size: 0.875rem;
+  text-align: center;
+}
