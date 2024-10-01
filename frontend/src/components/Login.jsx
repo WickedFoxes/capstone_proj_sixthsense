@@ -8,7 +8,7 @@ const API_BASE_URL = "http://localhost:8080";
 axios.defaults.withCredentials = true;
 
 const Login = () => {
-  const [id, setID] = useState("");
+  const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -21,24 +21,24 @@ const Login = () => {
 
   useEffect(() => {
     //아이디와 비밀번호가 모두 입력된 경우 버튼을 활성화
-    if (id && password) {
+    if (username && password) {
       setIsButtonDisabled(false);
     } else {
       setIsButtonDisabled(true);
     }
-  }, [id, password]);
+  }, [username, password]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       // 백엔드로 로그인 요청 보내기
-      const response = await axios.post(`${API_BASE_URL}/login`, {
-        id,
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        username,
         password,
       });
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         // 로그인 성공
         console.log("Login successful");
         navigate("/main"); // 로그인 후 이동할 페이지
@@ -63,9 +63,9 @@ const Login = () => {
           <div>
             <input
               type="text"
-              value={id}
-              placeholder="아이디"
-              onChange={(e) => setID(e.target.value)}
+              value={username}
+              placeholder="아이디(Username)"
+              onChange={(e) => setusername(e.target.value)}
               required
             />
           </div>

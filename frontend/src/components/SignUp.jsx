@@ -8,8 +8,8 @@ const API_BASE_URL = "http://localhost:8080";
 axios.defaults.withCredentials = true;
 
 const SignUp = () => {
-  const [name, setName] = useState("");
-  const [id, setId] = useState("");
+  const [username, setusername] = useState("");
+  const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
@@ -18,12 +18,12 @@ const SignUp = () => {
 
   useEffect(() => {
     // 이름, 이메일, 비밀번호, 비밀번호 확인이 모두 입력된 경우 버튼 활성화
-    if (name && id && password && confirmPassword) {
+    if (username && email && password && confirmPassword) {
       setIsButtonDisabled(false);
     } else {
       setIsButtonDisabled(true);
     }
-  }, [name, id, password, confirmPassword]);
+  }, [username, email, password, confirmPassword]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,9 +36,9 @@ const SignUp = () => {
 
     try {
       // 백엔드로 회원가입 요청 보내기
-      const response = await axios.post(`${API_BASE_URL}/signup`, {
-        name,
-        id,
+      const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
+        username,
+        email,
         password,
       });
 
@@ -51,10 +51,6 @@ const SignUp = () => {
       // 회원가입 실패
       if (error.response && error.response.status === 409) {
         setErrorMessage("이미 가입된 아이디입니다");
-      } else {
-        setErrorMessage(
-          "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
-        );
       }
     }
   };
@@ -68,19 +64,18 @@ const SignUp = () => {
             <div>
               <input
                 type="text"
-                value={name}
-                placeholder="이름"
-                onChange={(e) => setName(e.target.value)}
+                value={username}
+                placeholder="아이디"
+                onChange={(e) => setusername(e.target.value)}
                 required
               />
             </div>
-
             <div>
               <input
                 type="text"
-                value={id}
-                placeholder="아이디"
-                onChange={(e) => setId(e.target.value)}
+                value={email}
+                placeholder="이메일"
+                onChange={(e) => setemail(e.target.value)}
                 required
               />
             </div>
