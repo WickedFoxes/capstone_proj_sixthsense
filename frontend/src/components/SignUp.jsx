@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./SignUp.css";
 
-// 유저 데이터(예시)
-const existUsers = [{ email: "user1@gmail.com" }, { email: "user2@naver.com" }];
+// 백엔드 API 주소
+const API_BASE_URL = "http://localhost:8080";
+axios.defaults.withCredentials = true;
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -23,15 +25,8 @@ const SignUp = () => {
     }
   }, [name, id, password, confirmPassword]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // 아이디 중복 검사
-    const emailExists = existUsers.some((user) => user.email === id);
-    if (emailExists) {
-      setErrorMessage("이미 가입된 아이디입니다");
-      return;
-    }
 
     // 비밀번호 확인
     if (password !== confirmPassword) {
@@ -39,9 +34,29 @@ const SignUp = () => {
       return;
     }
 
-    // 실제 회원가입 로직 추가 (서버에 데이터 전송)
-    console.log("Sign Up successful");
-    navigate("/"); // 회원가입 후 이동할 페이지 (나중에 메인 화면 구현)
+    try {
+      // 백엔드로 회원가입 요청 보내기
+      const response = await axios.post(`${API_BASE_URL}/signup`, {
+        name,
+        id,
+        password,
+      });
+
+      if (response.status === 201) {
+        // 회원가입 성공
+        console.log("Sign Up successful");
+        navigate("/"); // 회원가입 후 이동할 페이지
+      }
+    } catch (error) {
+      // 회원가입 실패
+      if (error.response && error.response.status === 409) {
+        setErrorMessage("이미 가입된 아이디입니다");
+      } else {
+        setErrorMessage(
+          "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+        );
+      }
+    }
   };
 
   return (

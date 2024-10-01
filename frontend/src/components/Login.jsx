@@ -1,12 +1,11 @@
 import "./Login.css";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-//유저 데이터 예시
-const userData = [
-  { ID: "user1", password: "password1" },
-  { ID: "user2", password: "password2" },
-];
+// 백엔드 API 주소
+const API_BASE_URL = "http://localhost:8080";
+axios.defaults.withCredentials = true;
 
 const Login = () => {
   const [id, setID] = useState("");
@@ -29,21 +28,30 @@ const Login = () => {
     }
   }, [id, password]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //유저 데이터에서 입력한 아이디와 비밀번호가 일치하는지 확인
-    const user = userData.find(
-      (user) => user.ID === id && user.password === password
-    );
+    try {
+      // 백엔드로 로그인 요청 보내기
+      const response = await axios.post(`${API_BASE_URL}/login`, {
+        id,
+        password,
+      });
 
-    if (user) {
-      //로그인 성공
-      console.log("Login successful");
-      navigate("/main"); //로그인 후 이동할 페이지
-    } else {
-      //로그인 실패
-      setErrorMessage("가입된 정보가 없습니다.");
+      if (response.status === 200) {
+        // 로그인 성공
+        console.log("Login successful");
+        navigate("/main"); // 로그인 후 이동할 페이지
+      }
+    } catch (error) {
+      // 로그인 실패
+      if (error.response && error.response.status === 401) {
+        setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
+      } else {
+        setErrorMessage(
+          "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+        );
+      }
     }
   };
 
@@ -54,7 +62,7 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <div>
             <input
-              type="id"
+              type="text"
               value={id}
               placeholder="아이디"
               onChange={(e) => setID(e.target.value)}
