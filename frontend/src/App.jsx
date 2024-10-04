@@ -2,6 +2,8 @@ import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
+import Header from "./components/Header";
+import Project from "./components/Project";
 
 function App() {
   return (
@@ -21,6 +23,15 @@ function App() {
             element={
               <>
                 <SignUp />
+              </>
+            }
+          />
+          <Route
+            path="/main"
+            element={
+              <>
+                <Header />
+                <Project />
               </>
             }
           />

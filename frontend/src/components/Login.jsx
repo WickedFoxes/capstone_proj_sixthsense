@@ -2,6 +2,7 @@ import "./Login.css";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Button from "react-bootstrap/Button";
 
 // 백엔드 API 주소
 const API_BASE_URL = "http://localhost:8080";
@@ -41,6 +42,7 @@ const Login = () => {
       if (response.status === 201) {
         // 로그인 성공
         console.log("Login successful");
+        localStorage.setItem("username", username); // 사용자 이름을 로컬 스토리지에 저장
         navigate("/main"); // 로그인 후 이동할 페이지
       }
     } catch (error) {
@@ -83,9 +85,9 @@ const Login = () => {
           <button type="submit" disabled={isButtonDisabled}>
             로그인
           </button>
-          <h5 className="signup-link" onClick={goSignupPage}>
+          <Button variant="link" size="sm" onClick={goSignupPage}>
             회원가입
-          </h5>
+          </Button>
         </form>
         {errorMessage && <div className="error-message">{errorMessage}</div>}
       </div>
