@@ -18,6 +18,13 @@ public class AccountService implements UserDetailsService{
 	@Autowired
 	private AccountRepo repo;
 	
+	public Account getAccount(String username) {
+		return repo.findByUsername(username);
+	}
+	public void deleteAccount(Account account) {
+		repo.delete(account);
+	}
+	
 	public Account signup(Account account) {
 		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		account.setPassword(passwordEncoder.encode(account.getPassword()));

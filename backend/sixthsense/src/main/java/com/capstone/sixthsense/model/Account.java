@@ -1,12 +1,17 @@
 package com.capstone.sixthsense.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -28,6 +33,9 @@ public class Account {
 	@Column(name = "email")
 	@NotEmpty
 	private String email;
+
+	@OneToMany(mappedBy = "account", cascade=CascadeType.REMOVE)
+	private List<Project> projects;
 
 	// 기본 생성자 (파라미터가 없는 생성자) 이거 없으면 오류 발생
     public Account() {
@@ -65,5 +73,11 @@ public class Account {
 	}
 	public void setEmail(String email) {
 		this.email = email;
+	}
+	public List<Project> getProjects() {
+		return projects;
+	}
+	public void setProjects(List<Project> projects) {
+		this.projects = projects;
 	}
 }

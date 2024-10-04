@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
+import com.capstone.sixthsense.dto.AccountDTO;
 import com.capstone.sixthsense.dto.LoginDTO;
 import com.capstone.sixthsense.exception.NotNullException;
 import com.capstone.sixthsense.exception.UserAlreadyExistsException;
@@ -40,13 +42,11 @@ public class AccountController {
 	private AccountService service;
 	
     @GetMapping("/")
-    public Map<String, String> Home() {
+    public Map<String, String> home() {
     	HashMap<String, String> map = new HashMap<>();
     	
         map.put("welcom", "This is sixthsense API server for automatic web accessibility scanning.");
         map.put("isAuthenticated", String.valueOf(isAuthenticated()));
-        map.put("username", null);
-        map.put("userID", null);
         
         if(isAuthenticated()) {
         	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -58,12 +58,10 @@ public class AccountController {
     }
     
     @PostMapping("/auth/login")
-    public ResponseEntity<HashMap<String, String>> login(
+    public ResponseEntity<Object> login(
     		@RequestBody LoginDTO loginRequest, 
     		HttpServletRequest request
     ) {    	
-    	HashMap<String, String> map = new HashMap<>();
-    	
     	UsernamePasswordAuthenticationToken authenticationToken = 
             new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
         
@@ -74,6 +72,7 @@ public class AccountController {
             securityContext = SecurityContextHolder.getContext();
             securityContext.setAuthentication(authentication);
     	} catch(Exception e) {
+    		HashMap<String, String> map = new HashMap<>();
     		map.put("error", e.getMessage());
     		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
     	}
@@ -82,23 +81,19 @@ public class AccountController {
         HttpSession session = request.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
         
-        AccountDetails account = (AccountDetails)authentication.getPrincipal();
-        map.put("welcom", "This is sixthsense API server for automatic web accessibility scanning.");
-        map.put("isAuthenticated", "true");
-        map.put("username", account.getUsername());
+        AccountDetails accountDetails = (AccountDetails)authentication.getPrincipal();
+        Account account = service.getAccount(accountDetails.getUsername());
         
-        return ResponseEntity.status(HttpStatus.CREATED).body(map);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AccountDTO(account));
     }
     
     @PostMapping("/auth/signup")
-    public ResponseEntity<HashMap<String, String>> signup(@RequestBody Account account) {
-    	HashMap<String, String> map = new HashMap<>();
+    public ResponseEntity<Object> signup(@RequestBody Account account) {
     	try {
     		service.signup(account);
-    		map.put("username", account.getUsername());
-    		map.put("email", account.getEmail());
-    		return ResponseEntity.status(HttpStatus.CREATED).body(map);
+    		return ResponseEntity.status(HttpStatus.CREATED).body(new AccountDTO(account));
     	}catch(Exception e){
+    		HashMap<String, String> map = new HashMap<>();
     		map.put("error", e.getMessage());
     		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
     	}
@@ -111,5 +106,25 @@ public class AccountController {
             return false;
         }
         return authentication.isAuthenticated();
+    }
+    
+    @DeleteMapping("/auth/delete")
+    public ResponseEntity<Object> deleteAccount(HttpServletRequest request){
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
+    	Account account = service.getAccount(accountDetail.getUsername());
+		
+    	HashMap<String, String> map = new HashMap<>();
+    	try {
+    		service.deleteAccount(account);
+    		map.put("success", "Deletion of account was successful.");
+            HttpSession session = request.getSession();
+            session.invalidate();
+    		return ResponseEntity.status(HttpStatus.ACCEPTED).body(map);
+    	} catch(Exception e){
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+    	}	
+    	
     }
 }

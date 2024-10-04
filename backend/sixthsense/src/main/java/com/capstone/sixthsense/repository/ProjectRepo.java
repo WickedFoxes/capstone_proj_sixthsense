@@ -1,14 +1,15 @@
 package com.capstone.sixthsense.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.capstone.sixthsense.model.Account;
-
-import java.util.Optional;
+import com.capstone.sixthsense.model.Project;
 
 @Repository
-public interface AccountRepo extends JpaRepository<Account, Integer>{
-	Account findByUsername(String username);
-	Account findById(int id);
+public interface ProjectRepo extends JpaRepository<Project, Integer>{
+	List<Project> findAllByAccount(Account account);
+	Project findById(int id);
 }
