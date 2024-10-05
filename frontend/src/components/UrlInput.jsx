@@ -10,7 +10,7 @@ function UrlInput() {
   const { projectId } = useParams(); // URL에서 projectId 추출
   const [projects, setProjects] = useState([]); // 모든 프로젝트 목록을 저장
   const [projectTitle, setProjectTitle] = useState(""); // 현재 선택된 프로젝트의 타이틀 상태
-  const [name, setName] = useState(""); // 이름 상태
+  const [title, setTitle] = useState(""); // 이름 상태
   const [url, setUrl] = useState(""); // URL 상태
 
   // 전체 프로젝트 목록 가져오기
@@ -49,7 +49,7 @@ function UrlInput() {
       const response = await axios.post(
         `${API.PAGECREATE}${projectId}`, // 프로젝트 ID를 동적으로 추가하여 URL 생성
         {
-          name: name, // 입력한 페이지 이름
+          title: title, // 입력한 페이지 이름
           url: url, // 입력한 URL
         }
       );
@@ -87,8 +87,8 @@ function UrlInput() {
               type="text"
               placeholder="Ex) 수강신청, 로그인, 메인 화면 ..."
               style={{ height: "45px" }}
-              value={name}
-              onChange={(e) => setName(e.target.value)} // 입력 값 상태 업데이트
+              value={title}
+              onChange={(e) => setTitle(e.target.value)} // 입력 값 상태 업데이트
               required
             />
           </Col>
