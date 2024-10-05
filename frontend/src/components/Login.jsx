@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
+import { API } from "../config";
 
-// 백엔드 API 주소
-const API_BASE_URL = "http://localhost:8080";
 axios.defaults.withCredentials = true;
 
 const Login = () => {
@@ -34,7 +33,7 @@ const Login = () => {
 
     try {
       // 백엔드로 로그인 요청 보내기
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+      const response = await axios.post(`${API.LOGIN}`, {
         username,
         password,
       });

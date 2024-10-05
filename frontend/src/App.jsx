@@ -4,6 +4,8 @@ import Login from "./components/Login";
 import SignUp from "./components/SignUp";
 import Header from "./components/Header";
 import Project from "./components/Project";
+import Menubar from "./components/Menubar";
+import UrlInput from "./components/UrlInput";
 
 function App() {
   return (
@@ -31,7 +33,17 @@ function App() {
             element={
               <>
                 <Header />
+                <Menubar />
                 <Project />
+              </>
+            }
+          />
+          <Route
+            path="/project/:projectId"
+            element={
+              <>
+                <Header />
+                <UrlInput />
               </>
             }
           />

@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button, Card, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
+import { API } from "../config";
 
-const API_BASE_URL = "http://localhost:8080";
 axios.defaults.withCredentials = true;
 
 function Project() {
@@ -20,7 +20,7 @@ function Project() {
     // 백엔드에서 프로젝트 정보 가져오기
     const fetchProjects = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/project/list`);
+        const response = await axios.get(`${API.PROJECTLIST}`);
         if (response.status === 200 && Array.isArray(response.data)) {
           setProjects(response.data);
         }
