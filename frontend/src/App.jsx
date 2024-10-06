@@ -6,6 +6,8 @@ import Header from "./components/Header";
 import Project from "./components/Project";
 import Menubar from "./components/Menubar";
 import UrlInput from "./components/UrlInput";
+import Url from "./components/Url";
+import ListGroup from "react-bootstrap/ListGroup";
 
 function App() {
   return (
@@ -44,6 +46,9 @@ function App() {
               <>
                 <Header />
                 <UrlInput />
+                <ListGroup as="ol" numbered>
+                  <Url />
+                </ListGroup>
               </>
             }
           />

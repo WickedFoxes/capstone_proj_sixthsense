@@ -9,4 +9,7 @@ export const API = {
   PROJECTDELETE: `${BASE_URL}/project/delete`,
   PROJECTUPDATE: `${BASE_URL}/project/update`,
   PAGECREATE: `${BASE_URL}/page/create/by-project/`,
+  PAGEDELETE: `${BASE_URL}/page/delete`,
+  PAGELIST: `${BASE_URL}/page/list/by-project/`,
+  REQUESTCREATE: `${BASE_URL}/request/create/by-page/`,
 };

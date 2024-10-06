@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button, Form, Row, Col, Container } from "react-bootstrap";
 import axios from "axios";
-import { API } from "../config"; // API 설정 파일에서 불러오기
+import { API } from "../config";
 
 axios.defaults.withCredentials = true;
 
@@ -56,6 +56,8 @@ function UrlInput() {
 
       if (response.status === 201) {
         alert("페이지가 성공적으로 생성되었습니다!");
+        setTitle("");
+        setUrl(""); // 등록하면 입력창 비움
       }
     } catch (error) {
       console.error("Error creating page:", error);
