@@ -40,6 +40,9 @@ public class Request {
     @CreatedDate
     private LocalDateTime createdDate;
 	
+	@Column(name = "image")
+	private String image;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "page_id", referencedColumnName="id")
     private Page page;
@@ -88,4 +91,13 @@ public class Request {
 	public void setItems(List<Item> items) {
 		this.items = items;
 	}
+
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
+	}
+	
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.capstone.sixthsense.dto.PageDTO;
 import com.capstone.sixthsense.dto.ProjectDTO;
@@ -40,7 +41,7 @@ public class RequestController {
 	private AccountService accountService;	
 	
 	@GetMapping("/request/list/by-page/{page}")
-	public ResponseEntity<Object> getPageList(@PathVariable("page") int page_id){
+	public ResponseEntity<Object> getRequestList(@PathVariable("page") int page_id){
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
     	Account account = accountService.getAccount(accountDetail.getUsername());
@@ -89,6 +90,40 @@ public class RequestController {
 		try {
 			requestService.deleteRequest(requestDTO, account);
 			return ResponseEntity.status(HttpStatus.ACCEPTED).body(requestDTO);
+			
+		} catch(Exception e){
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+    	}
+	}
+	
+	@GetMapping("/request/list/ready/by-key/{enginekey}")
+	public ResponseEntity<Object> getReadyRequestListWithKey(
+			@PathVariable("enginekey") String enginekey
+	){
+    	try{
+    		List<Request> list = requestService.getReadyRequestListWithKey(enginekey);
+    		List<RequestDTO> listDTO = new ArrayList<>();
+    		for(Request request : list) listDTO.add(new RequestDTO(request));
+    		
+    		return ResponseEntity.status(HttpStatus.OK).body(listDTO);     
+    		
+    	} catch(Exception e){
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);    		
+    	}
+	}
+	
+	@PutMapping("/request/update/by-key/{enginekey}")
+	public ResponseEntity<Object> updateRequestWithKey(
+			@RequestBody RequestDTO requestDTO,
+			@PathVariable("enginekey") String enginekey
+		){    	
+		try {
+			Request request = requestService.updateRequestWithKey(requestDTO, enginekey);
+			return ResponseEntity.status(HttpStatus.CREATED).body(new RequestDTO(request));
 			
 		} catch(Exception e){
 			HashMap<String, String> map = new HashMap<>();

@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.capstone.sixthsense.dto.PageDTO;
 import com.capstone.sixthsense.dto.ProjectDTO;
+import com.capstone.sixthsense.enumeration.RequestStatus;
 import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.AccountDetails;
 import com.capstone.sixthsense.model.Page;
 import com.capstone.sixthsense.model.Project;
+import com.capstone.sixthsense.model.Request;
 import com.capstone.sixthsense.service.AccountService;
 import com.capstone.sixthsense.service.PageService;
 import com.capstone.sixthsense.service.ProjectService;
@@ -46,7 +48,11 @@ public class PageController {
     		Project project = projectService.getProject(project_id, account);
     		List<Page> list = pageService.getPageList(project, account);
     		List<PageDTO> listDTO = new ArrayList<>();
-    		for(Page page : list) listDTO.add(new PageDTO(page));
+    		for(Page page : list) {
+    			PageDTO item = new PageDTO(page);
+    			item.setIsRunning(page.isRunning());
+    			listDTO.add(item);
+    		} 
     		
     		return ResponseEntity.status(HttpStatus.OK).body(listDTO);     
     		

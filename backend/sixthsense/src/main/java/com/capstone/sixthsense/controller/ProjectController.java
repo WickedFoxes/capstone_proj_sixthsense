@@ -12,9 +12,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.capstone.sixthsense.dto.ProjectDTO;
 import com.capstone.sixthsense.model.Account;
@@ -49,6 +52,27 @@ public class ProjectController {
     		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);    		
     	}
 	}
+
+//	@PostMapping("/project/create")
+//	public ResponseEntity<Object> createProject(
+//	        @ModelAttribute Project project,
+//	        @RequestPart(value = "image", required = false) MultipartFile image
+//		){
+//    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//    	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
+//    	Account account = accountService.getAccount(accountDetail.getUsername());
+//		project.setAccount(account);
+//		
+//		try {
+//			projectService.createProject(project);
+//			return ResponseEntity.status(HttpStatus.CREATED).body(new ProjectDTO(project));
+//			
+//		} catch(Exception e){
+//			HashMap<String, String> map = new HashMap<>();
+//    		map.put("error", e.getMessage());
+//    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+//    	}	
+//	}
 	
 	@PostMapping("/project/create")
 	public ResponseEntity<Object> createProject(@RequestBody Project project){

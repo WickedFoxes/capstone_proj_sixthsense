@@ -7,6 +7,7 @@ public class PageDTO {
 	private String title;
 	private String url;
     private int project_id;
+    private boolean isRunning;
     public PageDTO() {}
     public PageDTO(Page page) {
     	this.id = page.getId();
@@ -38,5 +39,10 @@ public class PageDTO {
 	public void setProject_id(int project_id) {
 		this.project_id = project_id;
 	}
-    
+	public boolean getIsRunning() {
+		return isRunning;
+	}
+	public void setIsRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
 }

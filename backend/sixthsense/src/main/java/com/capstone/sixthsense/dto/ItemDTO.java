@@ -6,7 +6,7 @@ import com.capstone.sixthsense.model.Request;
 
 public class ItemDTO {
 	private int id;
-	private ItemType type;
+	private ItemType itemtype;
 	private String body;	
 	private int tabindex;
 	private String colorimg;
@@ -18,7 +18,7 @@ public class ItemDTO {
     public ItemDTO() {}
     public ItemDTO(Item item) {
     	this.id = item.getId();
-    	this.type = item.getType();
+    	this.itemtype = item.getItemtype();
     	this.body = item.getBody();
     	this.tabindex = item.getTabindex();
     	this.colorimg = item.getColorimg();
@@ -34,11 +34,11 @@ public class ItemDTO {
 	public void setId(int id) {
 		this.id = id;
 	}
-	public ItemType getType() {
-		return type;
+	public ItemType getItemtype() {
+		return itemtype;
 	}
-	public void setType(ItemType type) {
-		this.type = type;
+	public void setItemtype(ItemType itemtype) {
+		this.itemtype = itemtype;
 	}
 	public String getBody() {
 		return body;

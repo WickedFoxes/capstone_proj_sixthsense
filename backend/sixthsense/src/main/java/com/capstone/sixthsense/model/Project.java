@@ -42,6 +42,9 @@ public class Project {
     @CreatedDate
     private LocalDateTime createdDate;
 
+	@Column(name = "image")
+	private String image;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "account_id", referencedColumnName="id")
     private Account account;
@@ -97,6 +100,14 @@ public class Project {
 
 	public void setPages(List<Page> pages) {
 		this.pages = pages;
+	}
+
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
 	}
 	
 }

@@ -24,17 +24,15 @@ public class Item {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	@Column(name = "type")
+	@Column(name = "itemtype")
 	@Enumerated(EnumType.STRING)
-	@NotEmpty
-	private ItemType type;
+	private ItemType itemtype;
 	
 	@Column(name = "body")
 	@NotEmpty
 	private String body;	
 	
 	@Column(name = "tabindex")
-	@NotEmpty
 	private int tabindex;
 
 	@Column(name = "colorimg")
@@ -50,7 +48,6 @@ public class Item {
     private Request request;
 
 	public Item() {}
-
 	public int getId() {
 		return id;
 	}
@@ -59,12 +56,12 @@ public class Item {
 		this.id = id;
 	}
 
-	public ItemType getType() {
-		return type;
+	public ItemType getItemtype() {
+		return itemtype;
 	}
 
-	public void setType(ItemType type) {
-		this.type = type;
+	public void setItemtype(ItemType itemtype) {
+		this.itemtype = itemtype;
 	}
 
 	public String getBody() {

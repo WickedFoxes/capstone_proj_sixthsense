@@ -62,4 +62,24 @@ public class ItemController {
     		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);    		
     	}
 	}
+	
+	@PostMapping("/item/create/by-request/by-key/{request_id}/{enginekey}")
+	public ResponseEntity<Object> createItemWithKey(
+			@PathVariable("request_id") int request_id,
+			@PathVariable("enginekey") String enginekey,
+			@RequestBody Item item
+		){
+		try {
+			Request request = requestService.getRequestWithKey(request_id, enginekey);
+			item.setRequest(request);
+			
+			Item result = itemService.createItemWithKey(item, enginekey);
+			return ResponseEntity.status(HttpStatus.CREATED).body(new ItemDTO(result));
+			
+		} catch(Exception e){
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+    	}	
+	}
 }

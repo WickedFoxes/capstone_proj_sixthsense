@@ -11,6 +11,7 @@ public class RequestDTO {
     private LocalDateTime createdDate;
     private int page_id;
     private int project_id;
+    private String image_name;
     public RequestDTO() {}
     public RequestDTO(Request request) {
     	this.id = request.getId();
@@ -18,6 +19,7 @@ public class RequestDTO {
     	this.createdDate = request.getCreatedDate();
     	this.page_id = request.getPage().getId();
     	this.project_id = request.getPage().getProject().getId();
+    	this.image_name = request.getImage();
     }
 	public int getId() {
 		return id;
@@ -49,4 +51,11 @@ public class RequestDTO {
 	public void setProject_id(int project_id) {
 		this.project_id = project_id;
 	}
+	public String getImage_name() {
+		return image_name;
+	}
+	public void setImage_name(String image_name) {
+		this.image_name = image_name;
+	}
+	
 }

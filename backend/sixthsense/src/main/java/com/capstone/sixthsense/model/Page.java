@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.capstone.sixthsense.enumeration.RequestStatus;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -83,6 +85,15 @@ public class Page {
 
 	public void setRequests(List<Request> requests) {
 		this.requests = requests;
+	}
+	
+	public boolean isRunning() {
+		boolean flag = false;
+		for(Request request : this.getRequests()) {
+			if(request.getStatus().equals(RequestStatus.RUNNING))
+				flag = true;
+		}
+		return flag;
 	}
 	
 }
