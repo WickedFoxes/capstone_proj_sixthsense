@@ -1,6 +1,6 @@
 package com.capstone.sixthsense.enumeration;
 
-public enum RequestStatus {
+public enum ScanStatus {
 	COMPLETE,
 	READY,
 	RUNNING

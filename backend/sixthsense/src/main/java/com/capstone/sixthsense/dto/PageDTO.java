@@ -1,5 +1,6 @@
 package com.capstone.sixthsense.dto;
 
+import com.capstone.sixthsense.enumeration.ScanStatus;
 import com.capstone.sixthsense.model.Page;
 
 public class PageDTO {
@@ -7,13 +8,14 @@ public class PageDTO {
 	private String title;
 	private String url;
     private int project_id;
-    private boolean isRunning;
+    private ScanStatus status;
     public PageDTO() {}
     public PageDTO(Page page) {
     	this.id = page.getId();
     	this.title = page.getTitle();
     	this.url = page.getUrl();
     	this.project_id = page.getProject().getId();
+    	this.status = page.getStatus();
     }
 	public int getId() {
 		return id;
@@ -39,10 +41,11 @@ public class PageDTO {
 	public void setProject_id(int project_id) {
 		this.project_id = project_id;
 	}
-	public boolean getIsRunning() {
-		return isRunning;
+	public ScanStatus getStatus() {
+		return status;
 	}
-	public void setIsRunning(boolean isRunning) {
-		this.isRunning = isRunning;
+	public void setStatus(ScanStatus status) {
+		this.status = status;
 	}
+	
 }

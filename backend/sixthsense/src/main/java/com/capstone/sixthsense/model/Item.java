@@ -1,7 +1,7 @@
 package com.capstone.sixthsense.model;
 
 import com.capstone.sixthsense.enumeration.ItemType;
-import com.capstone.sixthsense.enumeration.RequestStatus;
+import com.capstone.sixthsense.enumeration.ScanStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -44,8 +44,8 @@ public class Item {
 	private String grayimg;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "request_id", referencedColumnName="id")
-    private Request request;
+	@JoinColumn(name = "page_id", referencedColumnName="id")
+    private Page page;
 
 	public Item() {}
 	public int getId() {
@@ -96,11 +96,11 @@ public class Item {
 		this.grayimg = grayimg;
 	}	
 	
-	public Request getRequest() {
-		return request;
+	public Page getPage() {
+		return page;
 	}
 
-	public void setRequest(Request request) {
-		this.request = request;
+	public void setPage(Page page) {
+		this.page = page;
 	}
 }

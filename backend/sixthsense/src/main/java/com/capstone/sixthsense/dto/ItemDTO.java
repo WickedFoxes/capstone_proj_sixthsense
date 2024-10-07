@@ -2,7 +2,6 @@ package com.capstone.sixthsense.dto;
 
 import com.capstone.sixthsense.enumeration.ItemType;
 import com.capstone.sixthsense.model.Item;
-import com.capstone.sixthsense.model.Request;
 
 public class ItemDTO {
 	private int id;
@@ -11,7 +10,6 @@ public class ItemDTO {
 	private int tabindex;
 	private String colorimg;
 	private String grayimg;
-    private int request_id;
     private int page_id;
     private int project_id;
     
@@ -23,9 +21,8 @@ public class ItemDTO {
     	this.tabindex = item.getTabindex();
     	this.colorimg = item.getColorimg();
     	this.grayimg = item.getGrayimg();
-    	this.request_id = item.getRequest().getId();
-    	this.page_id = item.getRequest().getPage().getId();
-    	this.project_id = item.getRequest().getPage().getProject().getId();
+    	this.page_id = item.getPage().getId();
+    	this.project_id = item.getPage().getProject().getId();
     }
     
 	public int getId() {
@@ -63,12 +60,6 @@ public class ItemDTO {
 	}
 	public void setGrayimg(String grayimg) {
 		this.grayimg = grayimg;
-	}
-	public int getRequest_id() {
-		return request_id;
-	}
-	public void setRequest_id(int request_id) {
-		this.request_id = request_id;
 	}
 	public int getPage_id() {
 		return page_id;

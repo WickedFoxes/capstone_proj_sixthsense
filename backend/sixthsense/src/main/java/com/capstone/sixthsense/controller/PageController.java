@@ -18,13 +18,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.capstone.sixthsense.dto.PageDTO;
-import com.capstone.sixthsense.dto.ProjectDTO;
-import com.capstone.sixthsense.enumeration.RequestStatus;
+import com.capstone.sixthsense.enumeration.ScanStatus;
 import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.AccountDetails;
 import com.capstone.sixthsense.model.Page;
 import com.capstone.sixthsense.model.Project;
-import com.capstone.sixthsense.model.Request;
 import com.capstone.sixthsense.service.AccountService;
 import com.capstone.sixthsense.service.PageService;
 import com.capstone.sixthsense.service.ProjectService;
@@ -49,9 +47,7 @@ public class PageController {
     		List<Page> list = pageService.getPageList(project, account);
     		List<PageDTO> listDTO = new ArrayList<>();
     		for(Page page : list) {
-    			PageDTO item = new PageDTO(page);
-    			item.setIsRunning(page.isRunning());
-    			listDTO.add(item);
+    			listDTO.add(new PageDTO(page));
     		} 
     		
     		return ResponseEntity.status(HttpStatus.OK).body(listDTO);     
@@ -72,10 +68,10 @@ public class PageController {
     	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
     	Account account = accountService.getAccount(accountDetail.getUsername());
 		
-		
 		try {
 			Project project = projectService.getProject(project_id, account);
 			page.setProject(project);
+			page.setStatus(ScanStatus.READY);
 			pageService.createPage(page, account);
 			return ResponseEntity.status(HttpStatus.CREATED).body(new PageDTO(page));
 			
@@ -112,6 +108,40 @@ public class PageController {
 		try {
 			pageService.deletePage(pageDTO, account);
 			return ResponseEntity.status(HttpStatus.ACCEPTED).body(pageDTO);
+			
+		} catch(Exception e){
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+    	}
+	}
+	
+	@GetMapping("/page/list/ready/by-key/{enginekey}")
+	public ResponseEntity<Object> getReadyPageListWithKey(
+			@PathVariable("enginekey") String enginekey
+	){
+    	try{
+    		List<Page> list = pageService.getReadyPageListWithKey(enginekey);
+    		List<PageDTO> listDTO = new ArrayList<>();
+    		for(Page page : list) listDTO.add(new PageDTO(page));
+    		
+    		return ResponseEntity.status(HttpStatus.OK).body(listDTO);     
+    		
+    	} catch(Exception e){
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);    		
+    	}
+	}
+	
+	@PutMapping("/page/update/by-key/{enginekey}")
+	public ResponseEntity<Object> updatePageWithKey(
+			@RequestBody PageDTO pageDTO,
+			@PathVariable("enginekey") String enginekey
+		){    	
+		try {
+			Page page = pageService.updatePageWithKey(pageDTO, enginekey);
+			return ResponseEntity.status(HttpStatus.CREATED).body(new PageDTO(page));
 			
 		} catch(Exception e){
 			HashMap<String, String> map = new HashMap<>();

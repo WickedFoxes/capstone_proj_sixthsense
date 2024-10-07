@@ -20,16 +20,22 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.capstone.sixthsense.dto.ProjectDTO;
+import com.capstone.sixthsense.dto.ProjectPageDTO;
+import com.capstone.sixthsense.enumeration.ScanStatus;
 import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.AccountDetails;
+import com.capstone.sixthsense.model.Page;
 import com.capstone.sixthsense.model.Project;
 import com.capstone.sixthsense.service.AccountService;
+import com.capstone.sixthsense.service.PageService;
 import com.capstone.sixthsense.service.ProjectService;
 
 @Controller
 public class ProjectController {
 	@Autowired
 	private ProjectService projectService;
+	@Autowired
+	private PageService pageService;
 	@Autowired
 	private AccountService accountService;	
 	
@@ -53,26 +59,31 @@ public class ProjectController {
     	}
 	}
 
-//	@PostMapping("/project/create")
-//	public ResponseEntity<Object> createProject(
-//	        @ModelAttribute Project project,
-//	        @RequestPart(value = "image", required = false) MultipartFile image
-//		){
-//    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//    	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
-//    	Account account = accountService.getAccount(accountDetail.getUsername());
-//		project.setAccount(account);
-//		
-//		try {
-//			projectService.createProject(project);
-//			return ResponseEntity.status(HttpStatus.CREATED).body(new ProjectDTO(project));
-//			
-//		} catch(Exception e){
-//			HashMap<String, String> map = new HashMap<>();
-//    		map.put("error", e.getMessage());
-//    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
-//    	}	
-//	}
+	@PostMapping("/project-page/create")
+	public ResponseEntity<Object> createProject(@RequestBody ProjectPageDTO projectPageDTO){
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
+    	Account account = accountService.getAccount(accountDetail.getUsername());
+		
+		try {
+			Project project = projectPageDTO.getProject();
+			List<Page> pageList = projectPageDTO.getPageList();
+			project.setAccount(account);
+			
+			projectService.createProject(project);
+			for(Page page : pageList) {
+				page.setProject(project);
+				page.setStatus(ScanStatus.READY);
+				pageService.createPage(page, account);
+			}
+			return ResponseEntity.status(HttpStatus.CREATED).body(new ProjectDTO(project));
+			
+		} catch(Exception e){
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+    	}	
+	}
 	
 	@PostMapping("/project/create")
 	public ResponseEntity<Object> createProject(@RequestBody Project project){

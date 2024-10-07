@@ -7,23 +7,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.capstone.sixthsense.dto.ItemDTO;
-import com.capstone.sixthsense.dto.PageDTO;
-import com.capstone.sixthsense.dto.ProjectDTO;
-import com.capstone.sixthsense.dto.RequestDTO;
-import com.capstone.sixthsense.enumeration.RequestStatus;
 import com.capstone.sixthsense.exception.NotExistException;
 import com.capstone.sixthsense.exception.NotHaveAuthException;
-import com.capstone.sixthsense.exception.NotNullException;
 import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.Item;
 import com.capstone.sixthsense.model.Page;
 import com.capstone.sixthsense.model.Project;
-import com.capstone.sixthsense.model.Request;
-import com.capstone.sixthsense.repository.AccountRepo;
 import com.capstone.sixthsense.repository.ItemRepo;
-import com.capstone.sixthsense.repository.PageRepo;
-import com.capstone.sixthsense.repository.ProjectRepo;
-import com.capstone.sixthsense.repository.RequestRepo;
 
 @Service
 public class ItemService {
@@ -37,28 +27,28 @@ public class ItemService {
 		if(item == null) {
 			throw new NotExistException("No data found.");
 		}
-		Project project = item.getRequest().getPage().getProject();
+		Project project = item.getPage().getProject();
 		if(!project.getAccount().getUsername().equals(account.getUsername())) {
 			throw new NotHaveAuthException("you don't have Auth");
 		}
 		return item;
 	}
-	public List<Item> getItemList(Request request, Account account){
-		if(request == null) {
+	public List<Item> getItemList(Page page, Account account){
+		if(page == null) {
 			throw new NotExistException("No data found.");
 		}
-		Project project = request.getPage().getProject();
+		Project project = page.getProject();
 		if(!project.getAccount().getUsername().equals(account.getUsername())) {
 			throw new NotHaveAuthException("you don't have Auth");
 		}
-		return repo.findAllByRequest(request);
+		return repo.findAllByPage(page);
 	}
 	public Item updateItem(ItemDTO itemDTO, Account account) {
 		Item item = repo.findById(itemDTO.getId());
 		if(item == null) {
 			throw new NotExistException("No data found.");
 		}
-		Project project = item.getRequest().getPage().getProject();
+		Project project = item.getPage().getProject();
 		if(project == null) {
 			throw new NotExistException("No data found.");
 		}
@@ -92,7 +82,7 @@ public class ItemService {
 		if(!key.equals(enginekey)) {
 			throw new NotHaveAuthException("you don't have Auth");
 		}
-		Project project = item.getRequest().getPage().getProject();
+		Project project = item.getPage().getProject();
 		if(project == null) {
 			throw new NotExistException("No data found.");
 		}

@@ -10,47 +10,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.capstone.sixthsense.dto.ItemDTO;
-import com.capstone.sixthsense.dto.PageDTO;
-import com.capstone.sixthsense.dto.ProjectDTO;
-import com.capstone.sixthsense.dto.RequestDTO;
 import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.AccountDetails;
 import com.capstone.sixthsense.model.Item;
 import com.capstone.sixthsense.model.Page;
-import com.capstone.sixthsense.model.Project;
-import com.capstone.sixthsense.model.Request;
 import com.capstone.sixthsense.service.AccountService;
 import com.capstone.sixthsense.service.ItemService;
 import com.capstone.sixthsense.service.PageService;
-import com.capstone.sixthsense.service.ProjectService;
-import com.capstone.sixthsense.service.RequestService;
 
 @Controller
 public class ItemController {
 	@Autowired
 	private ItemService itemService;
 	@Autowired
-	private RequestService requestService;
+	private PageService pageService;
 	@Autowired
 	private AccountService accountService;	
 	
-	@GetMapping("/item/list/by-request/{request}")
-	public ResponseEntity<Object> getItemList(@PathVariable("request") int request_id){
+	@GetMapping("/item/list/by-page/{page_id}")
+	public ResponseEntity<Object> getItemList(@PathVariable("page_id") int page_id){
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
     	Account account = accountService.getAccount(accountDetail.getUsername());
     	
     	try{
-    		Request request = requestService.getRequest(request_id, account);
-    		List<Item> list = itemService.getItemList(request, account);
+    		Page page = pageService.getPage(page_id, account);
+    		List<Item> list = itemService.getItemList(page, account);
     		List<ItemDTO> listDTO = new ArrayList<>();
     		for(Item item : list) listDTO.add(new ItemDTO(item));
     		
@@ -63,15 +54,15 @@ public class ItemController {
     	}
 	}
 	
-	@PostMapping("/item/create/by-request/by-key/{request_id}/{enginekey}")
+	@PostMapping("/item/create/by-page/by-key/{page_id}/{enginekey}")
 	public ResponseEntity<Object> createItemWithKey(
-			@PathVariable("request_id") int request_id,
+			@PathVariable("page_id") int page_id,
 			@PathVariable("enginekey") String enginekey,
 			@RequestBody Item item
 		){
 		try {
-			Request request = requestService.getRequestWithKey(request_id, enginekey);
-			item.setRequest(request);
+			Page page = pageService.getPageWithKey(page_id, enginekey);
+			item.setPage(page);
 			
 			Item result = itemService.createItemWithKey(item, enginekey);
 			return ResponseEntity.status(HttpStatus.CREATED).body(new ItemDTO(result));

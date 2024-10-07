@@ -69,8 +69,8 @@ public class SecurityConfig {
 		        		"/auth/signup", 
 		        		"/auth/logout",
 		        		"/image/save/by-key/*",
-		        		"/request/list/ready/by-key/*",
-		        		"/request/update/by-key/*",
+		        		"/page/list/ready/by-key/*",
+		        		"/page/update/by-key/*",
 		        		"/item/create/by-request/by-key/*/*"
 		        )
 		        .permitAll() // Allow these endpoints without authentication

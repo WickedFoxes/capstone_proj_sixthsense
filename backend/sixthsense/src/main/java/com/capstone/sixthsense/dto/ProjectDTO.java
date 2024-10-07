@@ -11,6 +11,7 @@ public class ProjectDTO {
     private String username;
     private String image_name;
     private LocalDateTime createdDate;
+    private boolean isComplete;
     
     public ProjectDTO() {}
     public ProjectDTO(Project project) {
@@ -20,6 +21,7 @@ public class ProjectDTO {
     	this.username = project.getAccount().getUsername();
     	this.createdDate = project.getCreatedDate();
     	this.image_name = project.getImage();
+    	this.isComplete = project.isComplete();
     }
 	
 	public LocalDateTime getCreatedDate() {
@@ -57,6 +59,12 @@ public class ProjectDTO {
 	}
 	public void setImage_name(String image_name) {
 		this.image_name = image_name;
+	}
+	public boolean isComplete() {
+		return isComplete;
+	}
+	public void setComplete(boolean isComplete) {
+		this.isComplete = isComplete;
 	}
 	
 }

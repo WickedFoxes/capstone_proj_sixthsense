@@ -6,12 +6,14 @@ import java.util.List;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import com.capstone.sixthsense.enumeration.RequestStatus;
+import com.capstone.sixthsense.enumeration.ScanStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,19 +33,22 @@ public class Page {
 	private int id;
 	
 	@Column(name = "title")
-	@NotEmpty
 	private String title;
 	
 	@Column(name = "url")
 	@NotEmpty
 	private String url;
 	
+	@Column(name = "status")
+	@Enumerated(EnumType.STRING)
+	private ScanStatus status;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id", referencedColumnName="id")
     private Project project;
 	
 	@OneToMany(mappedBy = "page", cascade=CascadeType.REMOVE)
-	private List<Request> requests;
+	private List<Item> items;
 	
 	public Page() {}
 
@@ -79,21 +84,19 @@ public class Page {
 		this.project = project;
 	}
 
-	public List<Request> getRequests() {
-		return requests;
+	public List<Item> getItems() {
+		return items;
+	}
+	public void setItems(List<Item> items) {
+		this.items = items;
 	}
 
-	public void setRequests(List<Request> requests) {
-		this.requests = requests;
+	public ScanStatus getStatus() {
+		return status;
 	}
-	
-	public boolean isRunning() {
-		boolean flag = false;
-		for(Request request : this.getRequests()) {
-			if(request.getStatus().equals(RequestStatus.RUNNING))
-				flag = true;
-		}
-		return flag;
+
+	public void setStatus(ScanStatus status) {
+		this.status = status;
 	}
 	
 }

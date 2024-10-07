@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.capstone.sixthsense.enumeration.ScanStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -110,4 +111,12 @@ public class Project {
 		this.image = image;
 	}
 	
+	public boolean isComplete() {
+		if(this.getPages() == null) return true;
+		for(Page page : this.getPages()) {
+			if(!page.getStatus().equals(ScanStatus.COMPLETE))
+				return false;
+		}
+		return true;
+	}
 }
