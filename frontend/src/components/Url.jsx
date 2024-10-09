@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { ListGroup, Button, Dropdown, Container } from "react-bootstrap";
+import {
+  ListGroup,
+  Button,
+  Dropdown,
+  Container,
+  Spinner,
+} from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { API } from "../config";
@@ -77,26 +83,57 @@ function Url() {
               className="d-flex justify-content-between align-items-center mb-2"
               style={{ padding: "20px" }}
             >
-              <div className="ms-2 text-start">
-                <div className="fw-bold">
-                  {index + 1}. {page.title} {/* 리스트처럼 번호 매김 */}
-                </div>
-                {page.url}
+              {/* 페이지 상태 및 정보 표시 */}
+              <div className="ms-2 text-start d-flex align-items-center">
+                <div className="fw-bold">{index + 1}.</div>
+                <div className="ms-2">{page.url}</div>
+                {/* 상태가 READY 또는 RUNNING일 때 스피너 표시 */}
+                {(page.status === "READY" || page.status === "RUNNING") && (
+                  <Spinner
+                    animation="border"
+                    variant="primary"
+                    size="sm"
+                    className="ms-3"
+                    role="status"
+                  >
+                    <span className="visually-hidden">검사 중...</span>
+                  </Spinner>
+                )}
               </div>
 
+              {/* 버튼 및 드롭다운 메뉴 */}
               <div className="d-flex align-items-center">
+                {/* 검사 버튼: COMPLETE 상태일 때만 활성화 */}
                 <Button
-                  variant="outline-success"
+                  variant={
+                    page.status === "COMPLETE" ? "outline-success" : "secondary"
+                  }
                   className="me-2"
-                  onClick={() => handleRequestCreate(page.id)} // 각 URL의 pageId 사용
+                  onClick={() => handleRequestCreate(page.id)}
+                  disabled={page.status !== "COMPLETE"}
+                  style={
+                    page.status !== "COMPLETE" ? { cursor: "not-allowed" } : {}
+                  }
                 >
                   검사
                 </Button>
 
-                <Button variant="outline-danger" className="me-2">
+                {/* 보기 버튼: COMPLETE 상태일 때만 활성화 */}
+                <Button
+                  variant={
+                    page.status === "COMPLETE" ? "outline-danger" : "secondary"
+                  }
+                  className="me-2"
+                  onClick={() => window.open(page.url, "_blank")}
+                  disabled={page.status !== "COMPLETE"}
+                  style={
+                    page.status !== "COMPLETE" ? { cursor: "not-allowed" } : {}
+                  }
+                >
                   보기
                 </Button>
 
+                {/* 편집 드롭다운 */}
                 <Dropdown>
                   <Dropdown.Toggle
                     variant="outline-secondary"
