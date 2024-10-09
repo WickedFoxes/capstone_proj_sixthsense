@@ -37,7 +37,6 @@ function Project() {
       {projects.map((project, index) => (
         <Col key={index} xs={12} sm={6} md={4} className="mb-3">
           <Card style={{ width: "auto", height: "auto", margin: "5px" }}>
-            <Card.Img variant="top" src="holder.js/100px180" />
             <Card.Body>
               <Card.Title>{project.title}</Card.Title>
               <Card.Text>{project.description}</Card.Text>

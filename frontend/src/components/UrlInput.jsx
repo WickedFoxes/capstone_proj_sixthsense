@@ -10,7 +10,6 @@ function UrlInput() {
   const { projectId } = useParams(); // URL에서 projectId 추출
   const [projects, setProjects] = useState([]); // 모든 프로젝트 목록을 저장
   const [projectTitle, setProjectTitle] = useState(""); // 현재 선택된 프로젝트의 타이틀 상태
-  const [title, setTitle] = useState(""); // 이름 상태
   const [url, setUrl] = useState(""); // URL 상태
 
   // 전체 프로젝트 목록 가져오기
@@ -49,14 +48,13 @@ function UrlInput() {
       const response = await axios.post(
         `${API.PAGECREATE}${projectId}`, // 프로젝트 ID를 동적으로 추가하여 URL 생성
         {
-          title: title, // 입력한 페이지 이름
+          title: "", // 빈 문자열로 설정된 title 값
           url: url, // 입력한 URL
         }
       );
 
       if (response.status === 201) {
         alert("페이지가 성공적으로 생성되었습니다!");
-        setTitle("");
         setUrl(""); // 등록하면 입력창 비움
       }
     } catch (error) {
@@ -70,31 +68,13 @@ function UrlInput() {
       <Form style={{ width: "70%" }} onSubmit={handleSubmit}>
         {projectTitle ? (
           <h4 className="mb-4 text-center">
-            {projectTitle} 에서 검사할 URL을 등록하세요.
+            {projectTitle} 에서 추가로 검사할 URL을 등록하세요.
           </h4>
         ) : (
           <h4 className="mb-4 text-center">프로젝트 정보를 불러오는 중...</h4>
         )}
 
-        <Form.Group as={Row} className="mb-4" controlId="formBasicName">
-          <Form.Label
-            column
-            sm="2"
-            style={{ textAlign: "left", fontWeight: "bold" }}
-          >
-            이름
-          </Form.Label>
-          <Col sm="10">
-            <Form.Control
-              type="text"
-              placeholder="Ex) 수강신청, 로그인, 메인 화면 ..."
-              style={{ height: "45px" }}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)} // 입력 값 상태 업데이트
-              required
-            />
-          </Col>
-        </Form.Group>
+        {/* URL 필드만 남김 */}
         <Form.Group as={Row} className="mb-4" controlId="formBasicUrl">
           <Form.Label
             column
