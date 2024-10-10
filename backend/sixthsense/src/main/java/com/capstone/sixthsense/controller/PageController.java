@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.capstone.sixthsense.dto.PageDTO;
+import com.capstone.sixthsense.dto.ProjectDTO;
 import com.capstone.sixthsense.enumeration.ScanStatus;
 import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.AccountDetails;
@@ -114,6 +115,28 @@ public class PageController {
     		map.put("error", e.getMessage());
     		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
     	}
+	}
+	
+	@PostMapping("/page/run/by-project/{project_id}")
+	public ResponseEntity<Object> runAllPageInProject(@PathVariable("project_id") int project_id){
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
+    	Account account = accountService.getAccount(accountDetail.getUsername());
+		try {
+			Project project = projectService.getProject(project_id, account);
+			List<Page> list = pageService.setPagesReadyInProject(project, account);
+			List<PageDTO> dtolist = new ArrayList<>();
+			for(Page page : list)
+				dtolist.add(new PageDTO(page));
+			return ResponseEntity.status(HttpStatus.OK).body(dtolist);
+			
+		} catch(Exception e) {
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+		}
+		
+		
 	}
 	
 	@GetMapping("/page/list/ready/by-key/{enginekey}")

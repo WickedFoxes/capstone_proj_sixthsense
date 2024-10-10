@@ -11,7 +11,6 @@ import com.capstone.sixthsense.exception.NotHaveAuthException;
 import com.capstone.sixthsense.exception.NotNullException;
 import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.Project;
-import com.capstone.sixthsense.repository.AccountRepo;
 import com.capstone.sixthsense.repository.ProjectRepo;
 
 @Service

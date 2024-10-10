@@ -88,6 +88,22 @@ public class PageService {
 		page.setUrl(pageDTO.getUrl());
 		return repo.save(page);
 	}
+	public List<Page> setPagesReadyInProject(Project project, Account account) {
+		if(project == null) {
+			throw new NotExistException("No data found.");
+		}
+		if(!project.getAccount().getUsername().equals(account.getUsername())) {
+			throw new NotHaveAuthException("you don't have Auth");
+		}
+		List<Page> pages = repo.findAllByProject(project);
+		for(Page page : pages) {
+			if(page.getStatus().equals(ScanStatus.COMPLETE)) {
+				page.setStatus(ScanStatus.READY);
+				repo.save(page);
+			}
+		}
+		return pages;
+	}
 	
 	public List<Page> getReadyPageListWithKey(String key) {
 		if(!key.equals(enginekey)) {
