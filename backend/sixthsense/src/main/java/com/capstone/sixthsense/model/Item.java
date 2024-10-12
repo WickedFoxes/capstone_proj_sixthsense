@@ -28,7 +28,7 @@ public class Item {
 	@Enumerated(EnumType.STRING)
 	private ItemType itemtype;
 	
-	@Column(name = "body")
+	@Column(columnDefinition = "TEXT", name = "body")
 	@NotEmpty
 	private String body;	
 	
@@ -36,17 +36,15 @@ public class Item {
 	private int tabindex;
 
 	@Column(name = "colorimg")
-	@NotEmpty
 	private String colorimg;
 
 	@Column(name = "grayimg")
-	@NotEmpty
 	private String grayimg;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "page_id", referencedColumnName="id")
     private Page page;
-
+	
 	public Item() {}
 	public int getId() {
 		return id;
@@ -94,13 +92,12 @@ public class Item {
 
 	public void setGrayimg(String grayimg) {
 		this.grayimg = grayimg;
-	}	
-	
+	}
 	public Page getPage() {
 		return page;
 	}
-
 	public void setPage(Page page) {
 		this.page = page;
 	}
+	
 }

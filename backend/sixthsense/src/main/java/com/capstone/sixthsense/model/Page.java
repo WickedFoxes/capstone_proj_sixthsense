@@ -48,6 +48,9 @@ public class Page {
     private Project project;
 	
 	@OneToMany(mappedBy = "page", cascade=CascadeType.REMOVE)
+	private List<Scan> scans;
+
+	@OneToMany(mappedBy = "page", cascade=CascadeType.REMOVE)
 	private List<Item> items;
 	
 	public Page() {}
@@ -84,11 +87,12 @@ public class Page {
 		this.project = project;
 	}
 
-	public List<Item> getItems() {
-		return items;
+	public List<Scan> getSacns() {
+		return scans;
 	}
-	public void setItems(List<Item> items) {
-		this.items = items;
+	
+	public void setScans(List<Scan> scans) {
+		this.scans = scans;
 	}
 
 	public ScanStatus getStatus() {
@@ -97,6 +101,18 @@ public class Page {
 
 	public void setStatus(ScanStatus status) {
 		this.status = status;
+	}
+
+	public List<Item> getItems() {
+		return items;
+	}
+
+	public void setItems(List<Item> items) {
+		this.items = items;
+	}
+
+	public List<Scan> getScans() {
+		return scans;
 	}
 	
 }

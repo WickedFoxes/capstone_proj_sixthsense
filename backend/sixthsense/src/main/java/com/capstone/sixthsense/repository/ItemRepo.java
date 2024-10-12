@@ -8,8 +8,11 @@ import org.springframework.stereotype.Repository;
 import com.capstone.sixthsense.model.Item;
 import com.capstone.sixthsense.model.Page;
 
+import jakarta.transaction.Transactional;
+
 @Repository
 public interface ItemRepo extends JpaRepository<Item, Integer>{
-	List<Item> findAllByPage(Page page);
+	@Transactional
+	void deleteAllByPage(Page page);
 	Item findById(int id);
 }

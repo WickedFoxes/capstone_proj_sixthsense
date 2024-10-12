@@ -1,0 +1,9 @@
+openai
+tiktoken
+pydantic
+python-dotenv
+selenium
+requests
+requests-toolbelt
+beautifulsoup4
+lxml

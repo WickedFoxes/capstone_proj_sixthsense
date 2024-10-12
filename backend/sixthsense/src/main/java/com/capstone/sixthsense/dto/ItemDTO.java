@@ -10,8 +10,7 @@ public class ItemDTO {
 	private int tabindex;
 	private String colorimg;
 	private String grayimg;
-    private int page_id;
-    private int project_id;
+	private int page_id;
     
     public ItemDTO() {}
     public ItemDTO(Item item) {
@@ -22,7 +21,6 @@ public class ItemDTO {
     	this.colorimg = item.getColorimg();
     	this.grayimg = item.getGrayimg();
     	this.page_id = item.getPage().getId();
-    	this.project_id = item.getPage().getProject().getId();
     }
     
 	public int getId() {
@@ -66,12 +64,6 @@ public class ItemDTO {
 	}
 	public void setPage_id(int page_id) {
 		this.page_id = page_id;
-	}
-	public int getProject_id() {
-		return project_id;
-	}
-	public void setProject_id(int project_id) {
-		this.project_id = project_id;
 	}
     
 }

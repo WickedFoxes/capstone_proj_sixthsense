@@ -27,44 +27,7 @@ public class ItemService {
 		if(item == null) {
 			throw new NotExistException("No data found.");
 		}
-		Project project = item.getPage().getProject();
-		if(!project.getAccount().getUsername().equals(account.getUsername())) {
-			throw new NotHaveAuthException("you don't have Auth");
-		}
 		return item;
-	}
-	public List<Item> getItemList(Page page, Account account){
-		if(page == null) {
-			throw new NotExistException("No data found.");
-		}
-		Project project = page.getProject();
-		if(!project.getAccount().getUsername().equals(account.getUsername())) {
-			throw new NotHaveAuthException("you don't have Auth");
-		}
-		return repo.findAllByPage(page);
-	}
-	public Item updateItem(ItemDTO itemDTO, Account account) {
-		Item item = repo.findById(itemDTO.getId());
-		if(item == null) {
-			throw new NotExistException("No data found.");
-		}
-		Project project = item.getPage().getProject();
-		if(project == null) {
-			throw new NotExistException("No data found.");
-		}
-		if(!project.getAccount().getUsername().equals(account.getUsername())) {
-			throw new NotHaveAuthException("you don't have Auth");
-		}
-//		if(itemDTO.get) {
-//			throw new NotNullException("It should not be provided as a blank space.");
-//		}
-		
-		item.setItemtype(itemDTO.getItemtype());
-		item.setTabindex(itemDTO.getTabindex());
-		item.setGrayimg(itemDTO.getGrayimg());
-		item.setColorimg(itemDTO.getColorimg());
-		item.setBody(itemDTO.getBody());
-		return repo.save(item);
 	}
 	
 	public Item getItemWithKey(int id, String key) {
@@ -81,11 +44,15 @@ public class ItemService {
 	public Item createItemWithKey(Item item, String key) {
 		if(!key.equals(enginekey)) {
 			throw new NotHaveAuthException("you don't have Auth");
-		}
-		Project project = item.getPage().getProject();
-		if(project == null) {
-			throw new NotExistException("No data found.");
-		}
+		}		
 		return repo.save(item);
+	}
+
+	public Page deleteItemListWithKey(Page page, String key) {
+		if(!key.equals(enginekey)) {
+			throw new NotHaveAuthException("you don't have Auth");
+		}
+		repo.deleteAllByPage(page);
+		return page;
 	}
 }

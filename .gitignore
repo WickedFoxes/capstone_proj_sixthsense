@@ -77,3 +77,8 @@ gradle-app.setting
 # Ignore all local history of files
 .history
 .ionide
+
+## python venv
+.env
+venv
+__pycache__

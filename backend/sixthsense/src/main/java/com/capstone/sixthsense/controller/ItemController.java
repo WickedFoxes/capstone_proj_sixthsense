@@ -31,33 +31,12 @@ public class ItemController {
 	@Autowired
 	private PageService pageService;
 	@Autowired
-	private AccountService accountService;	
-	
-	@GetMapping("/item/list/by-page/{page_id}")
-	public ResponseEntity<Object> getItemList(@PathVariable("page_id") int page_id){
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
-    	Account account = accountService.getAccount(accountDetail.getUsername());
-    	
-    	try{
-    		Page page = pageService.getPage(page_id, account);
-    		List<Item> list = itemService.getItemList(page, account);
-    		List<ItemDTO> listDTO = new ArrayList<>();
-    		for(Item item : list) listDTO.add(new ItemDTO(item));
-    		
-    		return ResponseEntity.status(HttpStatus.OK).body(listDTO);     
-    		
-    	} catch(Exception e){
-			HashMap<String, String> map = new HashMap<>();
-    		map.put("error", e.getMessage());
-    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);    		
-    	}
-	}
+	private AccountService accountService;
 	
 	@PostMapping("/item/create/by-page/by-key/{page_id}/{enginekey}")
 	public ResponseEntity<Object> createItemWithKey(
-			@PathVariable("page_id") int page_id,
 			@PathVariable("enginekey") String enginekey,
+			@PathVariable("page_id") int page_id,
 			@RequestBody Item item
 		){
 		try {
