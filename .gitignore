@@ -82,3 +82,4 @@ gradle-app.setting
 .env
 venv
 __pycache__
+engine/config.py
