@@ -12,4 +12,5 @@ export const API = {
   PAGEDELETE: `${BASE_URL}/page/delete`,
   PAGEUPDATE: `${BASE_URL}/page/update`,
   PAGELIST: `${BASE_URL}/page/list/by-project/`,
+  ALLPAGERUN: `${BASE_URL}/page/run/by-project/`,
 };

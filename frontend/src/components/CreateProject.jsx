@@ -96,7 +96,6 @@ function CreateProject({ show, onHide }) {
             />
           </Form.Group>
 
-          {/* URL 입력 필드 반복 렌더링 */}
           {pageList.map((page, index) => (
             <div key={index} className="mb-3">
               <Row>

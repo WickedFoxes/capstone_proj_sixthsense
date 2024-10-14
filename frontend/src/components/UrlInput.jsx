@@ -63,8 +63,21 @@ function UrlInput() {
     }
   };
 
+  // 페이지 전체 검사
+  const handleAllPageRun = async () => {
+    try {
+      const response = await axios.post(`${API.ALLPAGERUN}${projectId}`);
+      if (response.status === 200) {
+        alert("모든 페이지 검사를 시작합니다.");
+      }
+    } catch (error) {
+      console.error("Error running all page tests:", error);
+      alert("모든 페이지 검사 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
-    <Container className="d-flex justify-content-center align-items-center">
+    <Container className="d-flex flex-column align-items-center">
       <Form style={{ width: "70%" }} onSubmit={handleSubmit}>
         {projectTitle ? (
           <h4 className="mb-4 text-center">
@@ -73,8 +86,6 @@ function UrlInput() {
         ) : (
           <h4 className="mb-4 text-center">프로젝트 정보를 불러오는 중...</h4>
         )}
-
-        {/* URL 필드만 남김 */}
         <Form.Group as={Row} className="mb-4" controlId="formBasicUrl">
           <Form.Label
             column
@@ -102,6 +113,16 @@ function UrlInput() {
           </Col>
         </Row>
       </Form>
+
+      <div className="mt-4" style={{ textAlign: "right", width: "70%" }}>
+        <Button
+          variant="success"
+          onClick={handleAllPageRun}
+          style={{ width: "auto" }}
+        >
+          페이지 전체 검사
+        </Button>
+      </div>
     </Container>
   );
 }

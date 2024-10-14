@@ -138,6 +138,12 @@ function Url() {
                   <Dropdown.Toggle
                     variant="outline-secondary"
                     id="dropdown-basic"
+                    disabled={page.status !== "COMPLETE"} // COMPLETE 상태가 아닐 때 비활성화
+                    style={
+                      page.status !== "COMPLETE"
+                        ? { cursor: "not-allowed" }
+                        : {}
+                    }
                   >
                     편집
                   </Dropdown.Toggle>
