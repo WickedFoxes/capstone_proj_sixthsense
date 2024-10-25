@@ -11,8 +11,8 @@ import com.capstone.sixthsense.model.Page;
 import jakarta.transaction.Transactional;
 
 @Repository
-public interface ItemRepo extends JpaRepository<Item, Integer>{
+public interface ItemRepo extends JpaRepository<Item, Long>{
 	@Transactional
 	void deleteAllByPage(Page page);
-	Item findById(int id);
+	Item findById(long id);
 }

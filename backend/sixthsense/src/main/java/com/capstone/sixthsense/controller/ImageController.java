@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.capstone.sixthsense.model.Image;
 import com.capstone.sixthsense.service.ImageService;
 
 import io.jsonwebtoken.io.IOException;
@@ -32,7 +33,7 @@ public class ImageController {
         // 실제 구현에서는 DB에서 해당 id의 이미지 경로를 가져올 수 있음
         byte[] imageBytes = null;
 		try {
-	    	String imagePath = imageService.getImage(name);
+	    	String imagePath = imageService.getImagePath(name);
 	    	Path path = Paths.get(imagePath);
 			imageBytes = Files.readAllBytes(path);
 		} catch (Exception e) {
@@ -53,12 +54,11 @@ public class ImageController {
 	public ResponseEntity<Object> saveImageWithKey( 
 			@RequestParam("image") MultipartFile image, 
 			@PathVariable("enginekey") String enginekey) throws IOException {  
-		HashMap<String, String> map = new HashMap<>();
 		try {
-			String name = imageService.saveWithKey(image, enginekey);
-			map.put("name", name);
-			return ResponseEntity.status(HttpStatus.CREATED).body(map);
+			Image result = imageService.saveWithKey(image, enginekey);
+			return ResponseEntity.status(HttpStatus.CREATED).body(result);
 		} catch(Exception e) {
+			HashMap<String, String> map = new HashMap<>();
 			map.put("error", e.getMessage());
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
 		}		

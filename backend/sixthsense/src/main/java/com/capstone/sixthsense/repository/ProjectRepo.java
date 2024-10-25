@@ -9,7 +9,7 @@ import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.Project;
 
 @Repository
-public interface ProjectRepo extends JpaRepository<Project, Integer>{
+public interface ProjectRepo extends JpaRepository<Project, Long>{
 	List<Project> findAllByAccount(Account account);
-	Project findById(int id);
+	Project findById(long id);
 }

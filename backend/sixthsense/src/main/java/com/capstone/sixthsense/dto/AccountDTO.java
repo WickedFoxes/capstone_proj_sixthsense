@@ -3,7 +3,7 @@ package com.capstone.sixthsense.dto;
 import com.capstone.sixthsense.model.Account;
 
 public class AccountDTO {
-	private int id;
+	private long id;
 	private String username;
 	private String email;
 	
@@ -27,10 +27,10 @@ public class AccountDTO {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getUsername() {

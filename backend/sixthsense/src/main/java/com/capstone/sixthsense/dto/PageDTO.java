@@ -4,10 +4,10 @@ import com.capstone.sixthsense.enumeration.ScanStatus;
 import com.capstone.sixthsense.model.Page;
 
 public class PageDTO {
-	private int id;
+	private long id;
 	private String title;
 	private String url;
-    private int project_id;
+    private long project_id;
     private ScanStatus status;
     public PageDTO() {}
     public PageDTO(Page page) {
@@ -17,10 +17,10 @@ public class PageDTO {
     	this.project_id = page.getProject().getId();
     	this.status = page.getStatus();
     }
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getTitle() {
@@ -35,10 +35,10 @@ public class PageDTO {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	public int getProject_id() {
+	public long getProject_id() {
 		return project_id;
 	}
-	public void setProject_id(int project_id) {
+	public void setProject_id(long project_id) {
 		this.project_id = project_id;
 	}
 	public ScanStatus getStatus() {

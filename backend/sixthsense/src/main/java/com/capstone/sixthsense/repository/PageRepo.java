@@ -11,8 +11,8 @@ import com.capstone.sixthsense.model.Page;
 import com.capstone.sixthsense.model.Project;
 
 @Repository
-public interface PageRepo extends JpaRepository<Page, Integer>{
-	Page findById(int id);
+public interface PageRepo extends JpaRepository<Page, Long>{
+	Page findById(long id);
 	List<Page> findAllByProject(Project project);
 	List<Page> findAllByStatus(ScanStatus status);
 }

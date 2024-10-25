@@ -11,9 +11,9 @@ import com.capstone.sixthsense.model.Scan;
 import jakarta.transaction.Transactional;
 
 @Repository
-public interface ScanRepo extends JpaRepository<Scan, Integer>{
+public interface ScanRepo extends JpaRepository<Scan, Long>{
 	@Transactional
 	void deleteAllByPage(Page page);
 	List<Scan> findAllByPage(Page page);
-	Scan findById(int id);
+	Scan findById(long id);
 }

@@ -21,6 +21,7 @@ import com.capstone.sixthsense.model.AccountDetails;
 import com.capstone.sixthsense.model.Item;
 import com.capstone.sixthsense.model.Page;
 import com.capstone.sixthsense.service.AccountService;
+import com.capstone.sixthsense.service.ImageService;
 import com.capstone.sixthsense.service.ItemService;
 import com.capstone.sixthsense.service.PageService;
 
@@ -28,6 +29,8 @@ import com.capstone.sixthsense.service.PageService;
 public class ItemController {
 	@Autowired
 	private ItemService itemService;
+	@Autowired
+	private ImageService imageService;
 	@Autowired
 	private PageService pageService;
 	@Autowired
@@ -37,10 +40,24 @@ public class ItemController {
 	public ResponseEntity<Object> createItemWithKey(
 			@PathVariable("enginekey") String enginekey,
 			@PathVariable("page_id") int page_id,
-			@RequestBody Item item
+			@RequestBody ItemDTO itemDTO
 		){
 		try {
 			Page page = pageService.getPageWithKey(page_id, enginekey);
+			Item item = new Item(itemDTO.getBody());
+			if(itemDTO.getColorimg() != null &&  !itemDTO.getColorimg().isBlank()) {
+				item.setColorimg(
+					imageService.getImageWithKey(itemDTO.getColorimg(),enginekey)
+				);
+			}
+			if(itemDTO.getGrayimg() != null && !itemDTO.getGrayimg().isBlank()) {
+				item.setGrayimg(
+					imageService.getImageWithKey(itemDTO.getGrayimg(), enginekey)
+				);
+			}
+			item.setCss_selector(itemDTO.getCss_selector());
+			item.setItemtype(itemDTO.getItemtype());
+			item.setTabindex(itemDTO.getTabindex());
 			item.setPage(page);
 			
 			Item result = itemService.createItemWithKey(item, enginekey);

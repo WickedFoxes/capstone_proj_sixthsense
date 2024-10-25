@@ -23,6 +23,13 @@ def put_complete_status(page_id : int):
         {"id" : page_id, "status": "COMPLETE"}
     )
     
+def put_error_status(page_id : int):
+    page_status_update_url = config.UPDATE_PAGE_STATUS_SERVER_NAME + config.SERVER_KEY
+    return put_json_data(
+        page_status_update_url,
+        {"id" : page_id, "status": "ERROR"}
+    )
+    
 def delete_page_scanlist(page_id : int):
     page_scanlist_delete_url = config.DELETE_SCANLIST_SERVER_NAME + str(page_id) + "/" + config.SERVER_KEY
     print(page_scanlist_delete_url)
@@ -38,13 +45,20 @@ def post_create_scan(page_id: int, item_id: int, scan):
     scan_create_url = config.CREATE_SCAN_SERVER_NAME + str(page_id) + "/" + str(item_id) +"/" + config.SERVER_KEY
     return post_json_data(scan_create_url, scan)
 
-def post_upload_img(self, img_upload_url, filename):
+def post_create_img_item(filepath:str):
+    img_create_url = config.CREATE_IMAGE_SERVER_NAME + config.SERVER_KEY
+    return post_upload_img(img_create_url, filepath)
+
+
+
+####### 기본 GET, POST, PUT, DELETE 통신 #######
+def post_upload_img(img_upload_url, filepath):
     # Ensure that MultipartEncoder is correctly assigned
     body = MultipartEncoder(
         fields={
             'image': (
-                os.path.basename(filename), 
-                open(filename, 'rb'), 
+                os.path.basename(filepath), 
+                open(filepath, 'rb'), 
                 'image/png'
             )  # MIME type should be valid, like 'image/jpeg'
         }
@@ -54,8 +68,14 @@ def post_upload_img(self, img_upload_url, filename):
     headers = {'Content-type': body.content_type}
     # Perform the POST request
     response = requests.post(img_upload_url, headers=headers, data=body)
-    
-    return response
+    # 응답 상태 코드가 200 (성공)일 때만 처리
+    if response.status_code == 200 or response.status_code == 201:
+        # 응답 데이터를 JSON 형식으로 파싱
+        json_data = response.json()
+        return json_data
+    else:
+        print(f"Error: Received status code {response.status_code}")
+        return None
 
 def get_json_data(api_url):
     try:
@@ -63,7 +83,7 @@ def get_json_data(api_url):
         response = requests.get(api_url)
         
         # 응답 상태 코드가 200 (성공)일 때만 처리
-        if response.status_code == 200:
+        if response.status_code == 200 or response.status_code == 201:
             # 응답 데이터를 JSON 형식으로 파싱
             json_data = response.json()
             return json_data

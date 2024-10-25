@@ -4,13 +4,14 @@ import com.capstone.sixthsense.enumeration.ItemType;
 import com.capstone.sixthsense.model.Item;
 
 public class ItemDTO {
-	private int id;
+	private long id;
 	private ItemType itemtype;
 	private String body;	
-	private int tabindex;
+	private long tabindex;
 	private String colorimg;
 	private String grayimg;
-	private int page_id;
+	private long page_id;
+	private String css_selector;
     
     public ItemDTO() {}
     public ItemDTO(Item item) {
@@ -18,15 +19,22 @@ public class ItemDTO {
     	this.itemtype = item.getItemtype();
     	this.body = item.getBody();
     	this.tabindex = item.getTabindex();
-    	this.colorimg = item.getColorimg();
-    	this.grayimg = item.getGrayimg();
-    	this.page_id = item.getPage().getId();
+    	this.css_selector = item.getCss_selector();
+    	if(item.getColorimg() != null) {
+    		this.colorimg = item.getColorimg().getName();
+    	}
+    	if(item.getGrayimg() != null) {
+    		this.grayimg = item.getGrayimg().getName();
+    	}
+    	if(item.getPage() != null) {
+    		this.page_id = item.getPage().getId();
+    	}
     }
     
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public ItemType getItemtype() {
@@ -41,10 +49,10 @@ public class ItemDTO {
 	public void setBody(String body) {
 		this.body = body;
 	}
-	public int getTabindex() {
+	public long getTabindex() {
 		return tabindex;
 	}
-	public void setTabindex(int tabindex) {
+	public void setTabindex(long tabindex) {
 		this.tabindex = tabindex;
 	}
 	public String getColorimg() {
@@ -59,11 +67,16 @@ public class ItemDTO {
 	public void setGrayimg(String grayimg) {
 		this.grayimg = grayimg;
 	}
-	public int getPage_id() {
+	public long getPage_id() {
 		return page_id;
 	}
-	public void setPage_id(int page_id) {
+	public void setPage_id(long page_id) {
 		this.page_id = page_id;
 	}
-    
+	public String getCss_selector() {
+		return css_selector;
+	}
+	public void setCss_selector(String css_selector) {
+		this.css_selector = css_selector;
+	}
 }

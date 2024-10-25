@@ -8,7 +8,7 @@ import com.capstone.sixthsense.model.Account;
 import java.util.Optional;
 
 @Repository
-public interface AccountRepo extends JpaRepository<Account, Integer>{
+public interface AccountRepo extends JpaRepository<Account, Long>{
 	Account findByUsername(String username);
 	Account findById(int id);
 }

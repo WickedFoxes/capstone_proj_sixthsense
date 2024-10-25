@@ -7,3 +7,6 @@ requests
 requests-toolbelt
 beautifulsoup4
 lxml
+Pillow
+opencv-python
+numpy

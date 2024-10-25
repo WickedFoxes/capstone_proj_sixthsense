@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import com.capstone.sixthsense.model.Image;
 
 @Repository 
-public interface ImageRepo extends JpaRepository<Image, String>{
+public interface ImageRepo extends JpaRepository<Image, Long>{
+	Image findById(long id);
 	Image findByName(String name);
 }

@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -22,7 +23,7 @@ import jakarta.validation.constraints.NotEmpty;
 public class Item {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private long id;
 	
 	@Column(name = "itemtype")
 	@Enumerated(EnumType.STRING)
@@ -33,64 +34,67 @@ public class Item {
 	private String body;	
 	
 	@Column(name = "tabindex")
-	private int tabindex;
+	private long tabindex;
 
-	@Column(name = "colorimg")
-	private String colorimg;
+	@Column(columnDefinition = "TEXT", name = "css_selector")
+	private String css_selector;
+	
+	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "colorimg", referencedColumnName="id")
+	private Image colorimg;
 
-	@Column(name = "grayimg")
-	private String grayimg;
+	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "grayimg", referencedColumnName="id")
+	private Image grayimg;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "page_id", referencedColumnName="id")
     private Page page;
 	
-	public Item() {}
-	public int getId() {
+	public Item() {}	
+	public Item(String body) {
+		this.body = body;
+	}
+	public long getId() {
 		return id;
 	}
-
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
-
 	public ItemType getItemtype() {
 		return itemtype;
 	}
-
 	public void setItemtype(ItemType itemtype) {
 		this.itemtype = itemtype;
 	}
-
 	public String getBody() {
 		return body;
 	}
-
 	public void setBody(String body) {
 		this.body = body;
 	}
-
-	public int getTabindex() {
+	public long getTabindex() {
 		return tabindex;
 	}
-
-	public void setTabindex(int tabindex) {
+	public void setTabindex(long tabindex) {
 		this.tabindex = tabindex;
 	}
-
-	public String getColorimg() {
+	public String getCss_selector() {
+		return css_selector;
+	}
+	public void setCss_selector(String css_selector) {
+		this.css_selector = css_selector;
+	}
+	public Image getColorimg() {
 		return colorimg;
 	}
-
-	public void setColorimg(String colorimg) {
+	public void setColorimg(Image colorimg) {
 		this.colorimg = colorimg;
 	}
-
-	public String getGrayimg() {
+	public Image getGrayimg() {
 		return grayimg;
 	}
-
-	public void setGrayimg(String grayimg) {
+	public void setGrayimg(Image grayimg) {
 		this.grayimg = grayimg;
 	}
 	public Page getPage() {
@@ -99,5 +103,4 @@ public class Item {
 	public void setPage(Page page) {
 		this.page = page;
 	}
-	
 }

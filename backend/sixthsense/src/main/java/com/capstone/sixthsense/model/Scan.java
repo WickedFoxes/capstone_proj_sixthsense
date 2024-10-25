@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 public class Scan {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private long id;
 	
 	@Column(name = "errortype")
 	private String errortype;
@@ -36,11 +36,11 @@ public class Scan {
 
 	public Scan() {}
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 

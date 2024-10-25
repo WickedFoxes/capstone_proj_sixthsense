@@ -12,6 +12,9 @@ import jakarta.validation.constraints.NotNull;
 @Table(name = "image")
 public class Image {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+	
 	@NotNull
     @Column(name = "name")
     String name;
@@ -21,9 +24,15 @@ public class Image {
     String path;
     
     public Image() {}
-	public Image(String path, String name) {
-		this.path = path;
-		this.name = name;
+    public Image(String name, String path) {
+    	this.name = name;
+    	this.path = path;
+    }
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	public String getPath() {

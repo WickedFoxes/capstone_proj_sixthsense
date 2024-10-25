@@ -20,7 +20,7 @@ import jakarta.validation.constraints.NotEmpty;
 public class Account {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private long id;
 	
 	@Column(name = "username", unique=true)
 	@NotEmpty
@@ -50,10 +50,10 @@ public class Account {
 		this.email = email;
 	}
 	
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getUsername() {

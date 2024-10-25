@@ -1,18 +1,21 @@
 class ItemDTO:
     def __init__(self, 
             body : str,
+            css_selector : str = "",
             colorimg : str = "",
             grayimg : str = "",
             itemtype : str = "TEXT",
-            tabindex : int = 0
-        ):
+            tabindex : int = -1
+    ):
         self.body = body
+        self.css_selector = css_selector
         self.colorimg = colorimg
         self.grayimg = grayimg
         self.itemtype = itemtype
         self.tabindex = tabindex
     def __iter__(self):
         yield 'body', self.body
+        yield 'css_selector', self.css_selector
         yield 'colorimg', self.colorimg
         yield 'grayimg', self.grayimg
         yield 'itemtype', self.itemtype

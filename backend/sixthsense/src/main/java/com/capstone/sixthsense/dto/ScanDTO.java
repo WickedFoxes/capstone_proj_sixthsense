@@ -3,11 +3,11 @@ package com.capstone.sixthsense.dto;
 import com.capstone.sixthsense.model.Scan;
 
 public class ScanDTO {
-	private int id;
+	private long id;
 	private String error;
 	private String errormessage;
 	private String guide;
-	private int page_id;
+	private long page_id;
 	private ItemDTO item;
 	
     public ScanDTO() {}
@@ -19,10 +19,10 @@ public class ScanDTO {
     	this.page_id = scan.getPage().getId();
     	this.item = new ItemDTO(scan.getItem());
     }
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getError() {
@@ -43,10 +43,10 @@ public class ScanDTO {
 	public void setGuide(String guide) {
 		this.guide = guide;
 	}
-	public int getPage_id() {
+	public long getPage_id() {
 		return page_id;
 	}
-	public void setPage_id(int page_id) {
+	public void setPage_id(long page_id) {
 		this.page_id = page_id;
 	}
 	public ItemDTO getItem() {

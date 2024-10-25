@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import com.capstone.sixthsense.model.Project;
 
 public class ProjectDTO {
-    private int id;
+    private long id;
 	private String title;
     private String description;
     private String username;
@@ -30,10 +30,10 @@ public class ProjectDTO {
 	public void setCreatedDate(LocalDateTime createdDate) {
 		this.createdDate = createdDate;
 	}
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getTitle() {
