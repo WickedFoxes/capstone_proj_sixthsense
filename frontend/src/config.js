@@ -13,4 +13,5 @@ export const API = {
   PAGEUPDATE: `${BASE_URL}/page/update`,
   PAGELIST: `${BASE_URL}/page/list/by-project/`,
   ALLPAGERUN: `${BASE_URL}/page/run/by-project/`,
+  SCANLIST: `${BASE_URL}/scan/list/by-page/`,
 };

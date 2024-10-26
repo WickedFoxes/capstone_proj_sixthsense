@@ -8,6 +8,7 @@ import Menubar from "./components/Menubar";
 import UrlInput from "./components/UrlInput";
 import Url from "./components/Url";
 import ListGroup from "react-bootstrap/ListGroup";
+import Result from "./components/Result";
 
 function App() {
   return (
@@ -49,6 +50,15 @@ function App() {
                 <ListGroup as="ol" numbered>
                   <Url />
                 </ListGroup>
+              </>
+            }
+          />
+          <Route
+            path="/project/:projectId/page/:pageId"
+            element={
+              <>
+                <Header />
+                <Result />
               </>
             }
           />
