@@ -172,3 +172,83 @@ class crawler:
     def new_window_check(self):
         windows = self.driver.window_handles
         return len(windows) > 1
+    
+    def auto_loading_audio_check(self) -> str:
+        command = """
+        function getCssSelector(element) {
+            if (element.id) {
+                return `#${element.id}`;  // id가 있는 경우
+            } else {
+                let path = [];
+                while (element && element.nodeType === Node.ELEMENT_NODE) {
+                    let selector = element.nodeName.toLowerCase();
+                    if (element.parentNode) {
+                        let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
+                        if (siblings.length > 1) {
+                            selector += `:nth-child(${Array.prototype.indexOf.call(element.parentNode.children, element) + 1})`;
+                        }
+                    }
+                    path.unshift(selector);
+                    element = element.parentNode;
+                }
+                return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
+            }
+        }
+        const mediaElements = [...document.querySelectorAll('audio')];
+        const element = mediaElements.find(media => !media.paused);
+        if(element) return getCssSelector(element);
+        return "";
+        """
+        result = self.driver.execute_script(command)
+        if(result): return result
+        
+        # 모든 iframe 가져오기
+        iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
+        # 각 iframe을 순회
+        for index, iframe in enumerate(iframes):
+            # iframe으로 전환
+            self.driver.switch_to.frame(iframe)
+            result = self.driver.execute_script(command)
+            if(result): return result
+            self.driver.switch_to.default_content()
+        return ""
+    
+    def auto_loading_video_check(self) -> str:
+        command = """
+        function getCssSelector(element) {
+            if (element.id) {
+                return `#${element.id}`;  // id가 있는 경우
+            } else {
+                let path = [];
+                while (element && element.nodeType === Node.ELEMENT_NODE) {
+                    let selector = element.nodeName.toLowerCase();
+                    if (element.parentNode) {
+                        let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
+                        if (siblings.length > 1) {
+                            selector += `:nth-child(${Array.prototype.indexOf.call(element.parentNode.children, element) + 1})`;
+                        }
+                    }
+                    path.unshift(selector);
+                    element = element.parentNode;
+                }
+                return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
+            }
+        }
+        const mediaElements = [...document.querySelectorAll('video')];
+        const element = mediaElements.find(media => !media.paused);
+        if(element) return getCssSelector(element);
+        return "";
+        """
+        result = self.driver.execute_script(command)
+        if(result): return result
+        
+        # 모든 iframe 가져오기
+        iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
+        # 각 iframe을 순회
+        for index, iframe in enumerate(iframes):
+            # iframe으로 전환
+            self.driver.switch_to.frame(iframe)
+            result = self.driver.execute_script(command)
+            if(result): return f"iframe:nth-of-type({index+1})"
+            self.driver.switch_to.default_content()
+        return ""
