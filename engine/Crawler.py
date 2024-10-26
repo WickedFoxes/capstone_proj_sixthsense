@@ -104,12 +104,12 @@ class crawler:
         
         color_img_path, gray_img_path = self.capture_focus_element()
         gray_image = cv2.imread(gray_img_path)
-        # os.remove(color_img_path)
-        # os.remove(gray_img_path)
+        if gray_image.size > 0 and np.all(np.isfinite(gray_image)):
+            std_dev = np.std(gray_image)
+            print(std_dev)
+            return std_dev < 5
+        return True
         
-        std_dev = np.std(gray_image)
-        print(std_dev)
-        return std_dev < 5
 
     def get_focus_element_selector(self) -> str:
         command = """
