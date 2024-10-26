@@ -99,7 +99,7 @@ class crawler:
     
     def is_focus_element_hidden(self) -> bool:
         width = self.driver.execute_script("return document.activeElement.getBoundingClientRect().width;")
-        if width == 0: 
+        if not width or width == 0: 
             return True
         
         color_img_path, gray_img_path = self.capture_focus_element()
@@ -168,3 +168,7 @@ class crawler:
             tab_selector_dict[tab_item_key] = tab_index
         
         return finish_check, tab_selector_dict, tab_hidden_dict
+    
+    def new_window_check(self):
+        windows = self.driver.window_handles
+        return len(windows) > 1
