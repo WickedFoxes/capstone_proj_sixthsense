@@ -34,7 +34,7 @@ for request_page in data:
     if crawler.page_loading_wait():
         # scanner에서 html 읽기
         html = crawler.readHTML()
-        scanner = HtmlScanner.html_scanner(html)
+        scanner = HtmlScanner.html_scanner(html)    
         
         # 탭으로 끝까지 이동
         finish_check, tab_selector_dict, tab_hidden_dict = crawler.tab_until_finish()
@@ -62,13 +62,9 @@ for request_page in data:
             create_item = Api.post_create_item(request_page["id"], tab_hidden_error_check["item"])
             create_scan = Api.post_create_scan(request_page["id"], create_item["id"], tab_hidden_error_check["scan"])
     
-    # 크롤러 종료
-    crawler.close()
-    
     # 크롤러를 사용하여 HTML 수집
     # 큰 화면에서 실행
-    crawler = Crawler.crawler()
-    crawler.get(request_page["url"])
+    crawler.refresh()
     window_size_fullscreen = crawler.driver.get_window_size()
     crawler.driver.set_window_size(window_size_fullscreen["width"], window_size_fullscreen["height"])
     
@@ -77,11 +73,27 @@ for request_page in data:
         html = crawler.readHTML()
         scanner = HtmlScanner.html_scanner(html)
         
+        # 6.자동 재생 금지
+        audio_check = crawler.auto_loading_audio_check()
+        video_check = crawler.auto_loading_video_check()
+        print(f"audio check : {audio_check}")
+        print(f"video check : {video_check}")
+        if(audio_check):
+            audio_check_list = scanner.check_auto_audio(audio_check)
+            for audio_check in audio_check_list:
+                create_item = Api.post_create_item(request_page["id"], audio_check["item"])
+                create_scan = Api.post_create_scan(request_page["id"], create_item["id"], audio_check["scan"])
+        if(video_check):
+            video_check_list = scanner.check_auto_video(video_check)
+            for video_check in video_check_list:
+                create_item = Api.post_create_item(request_page["id"], video_check["item"])
+                create_scan = Api.post_create_scan(request_page["id"], create_item["id"], video_check["scan"])
+        
         # 탭으로 끝까지 이동
         finish_check, tab_selector_dict, tab_hidden_dict = crawler.tab_until_finish()
         
-        # 9.초점 이동
-        # 9-1.키보드를 사용한 초점 이동이 보장되어야 한다.
+        # 8.키보드 사용 보장
+        # 8-1.키보드를 사용한 이동이 보장되어야 한다.
         if(not finish_check):
             tab_img_color, tab_img_gray = crawler.capture_focus_element()
             color_img_res = Api.post_create_img_item(tab_img_color)
@@ -97,7 +109,7 @@ for request_page in data:
                 create_scan = Api.post_create_scan(request_page["id"], create_item["id"], tab_loop_error_check["scan"])
         
         # 9.초점 이동
-        # 9-2.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
+        # 9-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
         tab_hidden_error_check_list = scanner.check_tab_hidden_item_big(tab_hidden_dict)
         for tab_hidden_error_check in tab_hidden_error_check_list:
             create_item = Api.post_create_item(request_page["id"], tab_hidden_error_check["item"])
@@ -129,6 +141,18 @@ for request_page in data:
         for check_html_lang in check_html_lang_list:
             create_item = Api.post_create_item(request_page["id"], check_html_lang["item"])
             create_scan = Api.post_create_scan(request_page["id"], create_item["id"], check_html_lang["scan"])
+
+        # 18.사용자 요구에 따른 실행
+        check_new_window_onclick_list = scanner.check_new_window_onclick()
+        for check_new_window_onclick in check_new_window_onclick_list:
+            create_item = Api.post_create_item(request_page["id"], check_new_window_onclick["item"])
+            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], check_new_window_onclick["scan"])
+
+        # 20.표의 구성
+        check_table_head_list = scanner.check_table_head()
+        for check_table_head in check_table_head_list:
+            create_item = Api.post_create_item(request_page["id"], check_table_head["item"])
+            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], check_table_head["scan"])
 
         # 23.마크업 오류 방지
         markup_error_check_list = scanner.check_w3c_markup()
