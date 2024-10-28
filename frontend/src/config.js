@@ -14,4 +14,5 @@ export const API = {
   PAGELIST: `${BASE_URL}/page/list/by-project/`,
   ALLPAGERUN: `${BASE_URL}/page/run/by-project/`,
   SCANLIST: `${BASE_URL}/scan/list/by-page/`,
+  GETIMAGE: `${BASE_URL}/image/`,
 };
