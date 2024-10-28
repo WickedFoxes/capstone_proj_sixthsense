@@ -103,9 +103,12 @@ class crawler:
             return True
         
         color_img_path, gray_img_path = self.capture_focus_element()
-        gray_image = cv2.imread(gray_img_path)
-        if gray_image.size > 0 and np.all(np.isfinite(gray_image)):
-            std_dev = np.std(gray_image)
+        # gray_image = cv2.imread(gray_img_path)
+        pil_image = Image.open(gray_img_path).convert("RGB")
+        opencv_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+        
+        if opencv_image.size > 0 and np.all(np.isfinite(opencv_image)):
+            std_dev = np.std(opencv_image)
             print(std_dev)
             return std_dev < 5
         return True
