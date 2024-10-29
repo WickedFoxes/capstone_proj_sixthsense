@@ -19,6 +19,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 from PIL import Image
 import cv2
 import numpy as np
+import math
 
 class crawler:
     def __init__(self):
@@ -76,17 +77,8 @@ class crawler:
 
     def capture_focus_element(self):
         element = self.driver.switch_to.active_element
-        capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
-        # 해당 요소를 캡처하여 이미지로 저장
-        element.screenshot(capture_img_path)
-        
-        # 회색 이미지 저장
-        gray_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
-        img = Image.open(capture_img_path)
-        img_gray = img.convert("L")
-        img_gray.save(gray_img_path)
-
-        return capture_img_path, gray_img_path
+        color_img_path, gray_img_path = self.capture_element(element)
+        return color_img_path, gray_img_path
     
     def press_tab(self, sec=0.3):
         # ActionChains(self.driver).key_down(Keys.TAB)
@@ -107,7 +99,7 @@ class crawler:
         pil_image = Image.open(gray_img_path).convert("RGB")
         opencv_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
         
-        if opencv_image.size > 0 and np.all(np.isfinite(opencv_image)):
+        if opencv_image.size and np.all(np.isfinite(opencv_image)):
             std_dev = np.std(opencv_image)
             print(std_dev)
             return std_dev < 5
@@ -255,3 +247,118 @@ class crawler:
             if(result): return f"iframe:nth-of-type({index+1})"
             self.driver.switch_to.default_content()
         return ""
+    
+    def capture_element(self, element):
+        if(element.size["width"] == 0): return None, None
+        capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
+        # 해당 요소를 캡처하여 이미지로 저장
+        element.screenshot(capture_img_path)
+        
+        # 회색 이미지 저장
+        gray_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
+        img = Image.open(capture_img_path)
+        img_gray = img.convert("L")
+        img_gray.save(gray_img_path)
+        
+        return capture_img_path, gray_img_path
+    
+    
+    def all_img_capture(self):
+        img_selector_dict = {}
+        
+        img_list = self.driver.find_elements(By.TAG_NAME, "img")
+        for index, element in enumerate(img_list, start=1):
+            color_img_path, gray_img_path = self.capture_element(element)
+            
+            img_selector_dict[f"img:nth-of-type({index})"] = {
+                'color_img_path' : color_img_path,
+                'gray_img_path' : gray_img_path
+            }
+        
+        input_list = self.driver.find_elements(By.CSS_SELECTOR, "input[type='image']")
+        for index, element in enumerate(input_list, start=1):
+            color_img_path, gray_img_path = self.capture_element(element)
+            
+            img_selector_dict[f'input[type="image"]:nth-of-type({index})'] = {
+                'color_img_path' : color_img_path,
+                'gray_img_path' : gray_img_path
+            }
+        
+        area_list = self.driver.find_elements(By.TAG_NAME, "area")
+        for index, element in enumerate(area_list, start=1):
+            color_img_path, gray_img_path = self.capture_element(element)
+            
+            img_selector_dict[f'area:nth-of-type({index})'] = {
+                'color_img_path' : color_img_path,
+                'gray_img_path' : gray_img_path
+            }
+        return img_selector_dict
+    
+    def all_control_capture(self):
+        selector_dict = {}
+        
+        input_list = self.driver.find_elements(By.TAG_NAME, "input")
+        for index, element in enumerate(input_list, start=1):
+            element_type = element.get_attribute("type")
+            
+            if element_type and element_type not in ["hidden", "image"]:
+                color_img_path, gray_img_path = self.capture_element(element)
+                
+                selector_dict[f"input:nth-of-type({index})"] = {
+                    'color_img_path' : color_img_path,
+                    'gray_img_path' : gray_img_path
+                }
+        
+        button_list = self.driver.find_elements(By.TAG_NAME, "button")
+        for index, element in enumerate(button_list, start=1):
+            color_img_path, gray_img_path = self.capture_element(element)
+            
+            selector_dict[f'button:nth-of-type({index})'] = {
+                'color_img_path' : color_img_path,
+                'gray_img_path' : gray_img_path
+            }
+        
+        textarea_list = self.driver.find_elements(By.TAG_NAME, "textarea")
+        for index, element in enumerate(textarea_list, start=1):
+            color_img_path, gray_img_path = self.capture_element(element)
+            
+            selector_dict[f'textarea:nth-of-type({index})'] = {
+                'color_img_path' : color_img_path,
+                'gray_img_path' : gray_img_path
+            }
+        return selector_dict
+    
+    def all_control_size(self):
+        selector_dict = {}
+                
+        input_list = self.driver.find_elements(By.TAG_NAME, "input")
+        for index, element in enumerate(input_list, start=1):
+            element_type = element.get_attribute("type")
+            size = element.size
+            if element_type and element_type not in ["hidden", "image"]:
+                selector_dict[f"input:nth-of-type({index})"] = {
+                    'width' : size["width"],
+                    'height' : size["height"],
+                    'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
+                }
+        
+        button_list = self.driver.find_elements(By.TAG_NAME, "button")
+        for index, element in enumerate(button_list, start=1):
+            element_type = element.get_attribute("type")
+            size = element.size
+            selector_dict[f'button:nth-of-type({index})'] = {
+                    'width' : size["width"],
+                    'height' : size["height"],
+                    'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
+            }
+        
+        textarea_list = self.driver.find_elements(By.TAG_NAME, "textarea")
+        for index, element in enumerate(textarea_list, start=1):
+            element_type = element.get_attribute("type")
+            size = element.size
+            selector_dict[f'textarea:nth-of-type({index})'] = {
+                    'width' : size["width"],
+                    'height' : size["height"],
+                    'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
+            }
+        return selector_dict
