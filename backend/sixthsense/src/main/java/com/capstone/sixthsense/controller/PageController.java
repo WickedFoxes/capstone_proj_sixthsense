@@ -117,6 +117,23 @@ public class PageController {
     	}
 	}
 	
+	@PostMapping("/page/run/{page_id}")
+	public ResponseEntity<Object> runPage(@PathVariable("page_id") int page_id){
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
+    	Account account = accountService.getAccount(accountDetail.getUsername());
+		try {
+			Page page = pageService.getPage(page_id, account);
+			page = pageService.setPageReady(page, account);
+			return ResponseEntity.status(HttpStatus.OK).body(new PageDTO(page));
+			
+		} catch(Exception e) {
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+		}
+	}
+	
 	@PostMapping("/page/run/by-project/{project_id}")
 	public ResponseEntity<Object> runAllPageInProject(@PathVariable("project_id") int project_id){
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

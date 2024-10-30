@@ -88,6 +88,17 @@ public class PageService {
 		page.setUrl(pageDTO.getUrl());
 		return repo.save(page);
 	}
+	public Page setPageReady(Page page, Account acccount) {
+		Project project = page.getProject();
+		if(project == null) {
+			throw new NotExistException("No data found.");
+		}
+		if(!project.getAccount().getUsername().equals(acccount.getUsername())) {
+			throw new NotHaveAuthException("you don't have Auth");
+		}
+		page.setStatus(ScanStatus.READY);
+		return repo.save(page);
+	}
 	public List<Page> setPagesReadyInProject(Project project, Account account) {
 		if(project == null) {
 			throw new NotExistException("No data found.");
