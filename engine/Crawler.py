@@ -131,7 +131,7 @@ class crawler:
         """
         return self.driver.execute_script(command)
     
-    def tab_until_finish(self, tab_limit=300, tab_cnt_limit=10):
+    def tab_until_finish(self, tab_limit=300, tab_cnt_limit=20):
         # 탭 이동 후, item 생성
         tab_selector_dict = {}
         tab_hidden_dict = {}
@@ -151,14 +151,16 @@ class crawler:
                 finish_check = True
                 break
             
-            tab_index += 1
             # 탭 아이템이 중복인 경우 break
             if(tab_item_key in tab_selector_dict): 
                 tab_cnt += 1
                 if(tab_cnt > tab_cnt_limit):
                     finish_check = False
                     break
+                continue
             
+            tab_cnt = 0
+            tab_index += 1
             # 탭 아이템이 시각적으로 보이지 않고 숨겨진 경우
             if(self.is_focus_element_hidden()):
                 tab_hidden_dict[self.get_focus_element_selector()] = tab_index
