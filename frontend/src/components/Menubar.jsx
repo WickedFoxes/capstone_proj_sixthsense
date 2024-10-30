@@ -12,20 +12,25 @@ function Menubar() {
   const [projectCount, setProjectCount] = useState(0);
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
 
-  useEffect(() => {
-    // 프로젝트 리스트 가져오기 (갯수 표시 위함)
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get(`${API.PROJECTLIST}`);
-        if (response.status === 200 && Array.isArray(response.data)) {
-          setProjectCount(response.data.length);
-        }
-      } catch (error) {
-        console.error("프로젝트 리스트를 가져오는 중 오류 발생:", error);
+  // 프로젝트 목록을 가져와 카운트를 업데이트하는 함수
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get(`${API.PROJECTLIST}`);
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setProjectCount(response.data.length);
       }
-    };
+    } catch (error) {
+      console.error("프로젝트 리스트를 가져오는 중 오류 발생:", error);
+    }
+  };
 
-    fetchProjects();
+  useEffect(() => {
+    fetchProjects(); // 초기 로드 시 프로젝트 목록 가져오기
+
+    // 주기적으로 프로젝트 수 갱신
+    const intervalId = setInterval(fetchProjects, 5000); // 5초마다 호출
+
+    return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 해제
   }, []);
 
   // 팝업창 열기
@@ -38,9 +43,10 @@ function Menubar() {
     setShowCreateProjectModal(false);
   };
 
-  // 프로젝트 리스트 새로 고침
+  // 프로젝트가 생성되었을 때 프로젝트 수 갱신
   const handleRefresh = () => {
-    setProjectCount((prevCount) => prevCount + 1); // 프로젝트 수 증가
+    fetchProjects(); // 프로젝트 수 업데이트
+    closeCreateProjectModal(); // 모달 닫기
   };
 
   return (
@@ -63,7 +69,7 @@ function Menubar() {
       <CreateProject
         show={showCreateProjectModal}
         onHide={closeCreateProjectModal}
-        onSave={handleRefresh} // onSave prop을 handleRefresh로 설정
+        onSave={handleRefresh} // onSave prop으로 handleRefresh 전달
       />
     </>
   );

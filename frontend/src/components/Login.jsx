@@ -14,13 +14,11 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-  // 회원가입 페이지 이동
   const goSignupPage = () => {
     navigate("/signup");
   };
 
   useEffect(() => {
-    //아이디와 비밀번호가 모두 입력된 경우 버튼을 활성화
     if (username && password) {
       setIsButtonDisabled(false);
     } else {
@@ -32,20 +30,16 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      // 백엔드로 로그인 요청 보내기
       const response = await axios.post(`${API.LOGIN}`, {
         username,
         password,
       });
 
       if (response.status === 201) {
-        // 로그인 성공
-        console.log("Login successful");
-        localStorage.setItem("username", username); // 사용자 이름을 로컬 스토리지에 저장
-        navigate("/main"); // 로그인 후 이동할 페이지
+        localStorage.setItem("username", username);
+        navigate("/main");
       }
     } catch (error) {
-      // 로그인 실패
       if (error.response && error.response.status === 401) {
         setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
       } else {
@@ -59,7 +53,7 @@ const Login = () => {
   return (
     <div className="wrapper">
       <div className="login-container">
-        <h2>Login</h2>
+        <div className="logo-text">Sixthsense</div> {/* 로고 텍스트 추가 */}
         <form onSubmit={handleSubmit}>
           <div>
             <input
@@ -84,11 +78,19 @@ const Login = () => {
           <button type="submit" disabled={isButtonDisabled}>
             로그인
           </button>
-          <Button variant="link" size="sm" onClick={goSignupPage}>
-            회원가입
-          </Button>
+          {errorMessage && <div className="error-message">{errorMessage}</div>}
+          <div className="signup-section">
+            <span className="signup-prompt">아직 회원이 아니신가요?</span>
+            <Button
+              variant="link"
+              size="sm"
+              onClick={goSignupPage}
+              className="signup-link"
+            >
+              회원가입
+            </Button>
+          </div>
         </form>
-        {errorMessage && <div className="error-message">{errorMessage}</div>}
       </div>
     </div>
   );

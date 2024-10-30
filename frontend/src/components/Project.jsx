@@ -9,56 +9,57 @@ axios.defaults.withCredentials = true;
 
 function Project() {
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null); // 수정할 프로젝트 선택
-  const [showEditModal, setShowEditModal] = useState(false); // 수정 모달 표시 여부
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const navigate = useNavigate();
 
-  // 프로젝트 페이지로 이동
   const goProjectPage = (projectId) => {
     navigate(`/project/${projectId}`);
   };
 
-  useEffect(() => {
-    // 백엔드에서 프로젝트 정보 가져오기
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get(`${API.PROJECTLIST}`);
-        if (response.status === 200 && Array.isArray(response.data)) {
-          setProjects(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching project list:", error);
+  // 프로젝트 목록 가져오는 함수
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get(`${API.PROJECTLIST}`);
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setProjects(response.data);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching project list:", error);
+    }
+  };
 
-    fetchProjects();
+  useEffect(() => {
+    fetchProjects(); // 초기 로드 시 프로젝트 목록 가져오기
+
+    // 4초마다 fetchProjects를 호출하여 자동 갱신
+    const intervalId = setInterval(fetchProjects, 4000);
+
+    return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 해제
   }, []);
 
-  // 프로젝트 수정 요청
   const handleProjectUpdate = async () => {
     if (!selectedProject) return;
     try {
       const response = await axios.put(`${API.PROJECTUPDATE}`, {
-        id: selectedProject.id, // 수정할 프로젝트 ID
+        id: selectedProject.id,
         title: selectedProject.title,
         description: selectedProject.description,
       });
 
       if (response.status === 201) {
-        // 성공적으로 업데이트되면 목록을 업데이트
         setProjects((prevProjects) =>
           prevProjects.map((project) =>
             project.id === selectedProject.id ? selectedProject : project
           )
         );
-        setShowEditModal(false); // 모달 닫기
+        setShowEditModal(false);
       }
     } catch (error) {
       console.error("프로젝트 수정 중 오류 발생:", error);
     }
   };
 
-  // 프로젝트 삭제 요청
   const handleProjectDelete = async (projectId) => {
     const confirmDelete = window.confirm(
       "정말로 이 프로젝트를 삭제하시겠습니까?"
@@ -67,11 +68,10 @@ function Project() {
 
     try {
       const response = await axios.delete(`${API.PROJECTDELETE}`, {
-        data: { id: projectId }, // 프로젝트 ID를 데이터로 넘겨줌
+        data: { id: projectId },
       });
 
       if (response.status === 202) {
-        // 성공적으로 삭제되면 목록에서 제거
         setProjects((prevProjects) =>
           prevProjects.filter((p) => p.id !== projectId)
         );
@@ -90,7 +90,6 @@ function Project() {
               <Card.Title>{project.title}</Card.Title>
               <Card.Text>{project.description}</Card.Text>
 
-              {/* 프로젝트로 이동 버튼 */}
               <Button
                 variant="outline-primary"
                 onClick={() => goProjectPage(project.id)}
@@ -98,7 +97,6 @@ function Project() {
                 보러가기
               </Button>
 
-              {/* 우측 상단 편집 메뉴 */}
               <Dropdown
                 style={{ position: "absolute", top: "10px", right: "10px" }}
               >
@@ -130,7 +128,7 @@ function Project() {
         </Col>
       ))}
 
-      {/* 수정 모달 창 */}
+      {/* 프로젝트 수정 모달 */}
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>프로젝트 수정</Modal.Title>

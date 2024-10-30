@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { Button, Form, Modal, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
@@ -6,41 +7,36 @@ import { API } from "../config";
 
 axios.defaults.withCredentials = true;
 
-function CreateProject({ show, onHide }) {
+function CreateProject({ show, onHide, onSave }) {
   const [projectTitle, setProjectTitle] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
-  const [pageList, setPageList] = useState([{ url: "", isSaved: false }]); // 초기 URL 상태
-  const [isUrlEmpty, setIsUrlEmpty] = useState(true); // URL 입력 필드가 비어있는지 확인
+  const [pageList, setPageList] = useState([{ url: "", isSaved: false }]);
+  const [isUrlEmpty, setIsUrlEmpty] = useState(true);
 
-  // URL 추가 핸들러
   const handleAddUrl = () => {
     const updatedPageList = pageList.map((page) => ({
       ...page,
-      isSaved: true, // 기존 URL 항목의 삭제 버튼 보이도록 설정
+      isSaved: true,
     }));
-    setPageList([...updatedPageList, { url: "", isSaved: false }]); // 새로운 URL 객체 추가
+    setPageList([...updatedPageList, { url: "", isSaved: false }]);
   };
 
-  // URL 삭제 핸들러
   const handleRemoveUrl = (index) => {
     const updatedPageList = pageList.filter((_, idx) => idx !== index);
     setPageList(updatedPageList);
   };
 
-  // 개별 URL 입력 핸들러
   const handleUrlChange = (index, value) => {
     const updatedPageList = [...pageList];
     updatedPageList[index].url = value;
     setPageList(updatedPageList);
   };
 
-  // 마지막 URL 입력 필드가 비어있는지 확인하여 추가 버튼 상태 업데이트
   useEffect(() => {
     const lastPage = pageList[pageList.length - 1];
-    setIsUrlEmpty(lastPage.url.trim() === ""); // 마지막 URL이 비어있으면 true, 아니면 false
+    setIsUrlEmpty(lastPage.url.trim() === "");
   }, [pageList]);
 
-  // 저장 버튼 클릭 시 프로젝트 생성 요청
   const handleSave = async () => {
     try {
       const requestData = {
@@ -48,7 +44,7 @@ function CreateProject({ show, onHide }) {
           title: projectTitle,
           description: projectDescription,
         },
-        pageList: pageList.map((page) => ({ title: "", url: page.url })), // title은 ""
+        pageList: pageList.map((page) => ({ title: "", url: page.url })),
       };
 
       const response = await axios.post(
@@ -57,10 +53,11 @@ function CreateProject({ show, onHide }) {
       );
       if (response.status === 201) {
         console.log("프로젝트가 성공적으로 생성되었습니다.");
-        onHide(); // 모달 닫기
         setProjectTitle("");
         setProjectDescription("");
-        setPageList([{ url: "", isSaved: false }]); // 상태 초기화
+        setPageList([{ url: "", isSaved: false }]);
+
+        onSave(); // Menubar 컴포넌트에서 목록 새로고침 및 모달 닫기
       }
     } catch (error) {
       console.error("프로젝트 생성 중 오류 발생:", error);
@@ -70,7 +67,7 @@ function CreateProject({ show, onHide }) {
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>프로젝트 생성</Modal.Title>
+        <Modal.Title>검사 페이지 생성</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -109,7 +106,6 @@ function CreateProject({ show, onHide }) {
                   />
                 </Col>
                 <Col sm="2">
-                  {/* 삭제 버튼: 기존 URL 항목이 추가된 후 표시되도록 설정 */}
                   {page.isSaved && (
                     <Button
                       variant="danger"
@@ -124,12 +120,11 @@ function CreateProject({ show, onHide }) {
             </div>
           ))}
 
-          {/* URL 추가 버튼 */}
           <Button
             variant="outline-primary"
             onClick={handleAddUrl}
             className="mb-3"
-            disabled={isUrlEmpty} // 마지막 URL 입력 필드가 비어있을 경우 비활성화
+            disabled={isUrlEmpty}
           >
             + URL 추가
           </Button>
@@ -146,5 +141,11 @@ function CreateProject({ show, onHide }) {
     </Modal>
   );
 }
+
+CreateProject.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onHide: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+};
 
 export default CreateProject;

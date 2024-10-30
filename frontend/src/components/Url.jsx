@@ -32,13 +32,18 @@ function Url() {
   useEffect(() => {
     if (projectId) {
       fetchUrls(); // projectId가 존재할 때만 URL 데이터 가져오기
+      // 2초마다 fetchUrls 호출 : 새고고침 없이 상태 업데이트
+      const intervalId = setInterval(fetchUrls, 2000);
+
+      // 컴포넌트 언마운트 시 인터벌 해제
+      return () => clearInterval(intervalId);
     }
   }, [projectId]);
 
   // 검사 버튼 클릭 시 페이지 검사 요청 보내기 (검사 후 즉시 갱신)
-  const handleRequestCreate = async (id) => {
+  const handleRequestCreate = async (pageId) => {
     try {
-      const response = await axios.post(`${API.REQUESTCREATE}${id}`);
+      const response = await axios.post(`${API.PAGERUN}${pageId}`);
       if (response.status === 201) {
         alert("페이지 검사가 성공적으로 요청되었습니다!");
         fetchUrls(); // 검사 후 즉시 상태 갱신
