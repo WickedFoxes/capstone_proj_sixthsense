@@ -44,7 +44,7 @@ function Url() {
   const handleRequestCreate = async (pageId) => {
     try {
       const response = await axios.post(`${API.PAGERUN}${pageId}`);
-      if (response.status === 201) {
+      if (response.status === 200) {
         alert("페이지 검사가 성공적으로 요청되었습니다!");
         fetchUrls(); // 검사 후 즉시 상태 갱신
       }

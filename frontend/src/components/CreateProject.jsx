@@ -12,6 +12,7 @@ function CreateProject({ show, onHide, onSave }) {
   const [projectDescription, setProjectDescription] = useState("");
   const [pageList, setPageList] = useState([{ url: "", isSaved: false }]);
   const [isUrlEmpty, setIsUrlEmpty] = useState(true);
+  const [isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
 
   const handleAddUrl = () => {
     const updatedPageList = pageList.map((page) => ({
@@ -32,9 +33,14 @@ function CreateProject({ show, onHide, onSave }) {
     setPageList(updatedPageList);
   };
 
+  // 마지막 URL 필드가 비어있는지 확인하여 URL 추가 버튼 상태 업데이트
   useEffect(() => {
     const lastPage = pageList[pageList.length - 1];
     setIsUrlEmpty(lastPage.url.trim() === "");
+
+    // 모든 URL 필드가 비어있는지 확인하여 저장 버튼 비활성화
+    const allUrlsEmpty = pageList.every((page) => page.url.trim() === "");
+    setIsSaveButtonDisabled(allUrlsEmpty);
   }, [pageList]);
 
   const handleSave = async () => {
@@ -131,10 +137,19 @@ function CreateProject({ show, onHide, onSave }) {
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
+        <Button variant="outline-primary" onClick={onHide}>
           닫기
         </Button>
-        <Button variant="primary" onClick={handleSave}>
+        <Button
+          variant="primary"
+          onClick={handleSave}
+          disabled={isSaveButtonDisabled}
+          style={{
+            backgroundColor: isSaveButtonDisabled ? "#e6e6e6" : "#007bff",
+            borderColor: isSaveButtonDisabled ? "#e6e6e6" : "#007bff",
+            color: isSaveButtonDisabled ? "#a0a0a0" : "white",
+          }}
+        >
           저장
         </Button>
       </Modal.Footer>
