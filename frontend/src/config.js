@@ -11,6 +11,7 @@ export const API = {
   PAGECREATE: `${BASE_URL}/page/create/by-project/`,
   PAGEDELETE: `${BASE_URL}/page/delete`,
   PAGEUPDATE: `${BASE_URL}/page/update`,
+  PAGERUN: `${BASE_URL}/page/run/`,
   PAGELIST: `${BASE_URL}/page/list/by-project/`,
   ALLPAGERUN: `${BASE_URL}/page/run/by-project/`,
   SCANLIST: `${BASE_URL}/scan/list/by-page/`,

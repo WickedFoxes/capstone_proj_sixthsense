@@ -74,7 +74,8 @@ function Result() {
       <h5 className="mb-4 text-center">
         {pageUrl && scanResults.length > 0 ? (
           <>
-            {pageUrl} 에서 발견된 오류는 {scanResults.length}개입니다.
+            {pageUrl} 에서 발견된 오류는{" "}
+            <span style={{ color: "red" }}>{scanResults.length}개</span>입니다.
             <br />각 항목을 눌러 세부 내용을 확인하세요.
           </>
         ) : (

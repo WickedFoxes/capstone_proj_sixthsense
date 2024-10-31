@@ -1,4 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=Nanum+Gothic&family=Nanum+Gothic+Coding&family=Noto+Sans+KR:wght@100..900&display=swap");
+
 .App {
+  font-family: "Noto Sans KR", sans-serif;
   width: 100%;
   margin: 0 auto;
   display: flex;
