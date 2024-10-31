@@ -90,11 +90,9 @@ class crawler:
         return self.driver.switch_to.active_element.get_attribute('outerHTML')
     
     def is_focus_element_hidden(self) -> bool:
-        width = self.driver.execute_script("return document.activeElement.getBoundingClientRect().width;")
-        if not width or width == 0: 
-            return True
-        
         color_img_path, gray_img_path = self.capture_focus_element()
+        if(not color_img_path): return True
+        
         # gray_image = cv2.imread(gray_img_path)
         pil_image = Image.open(gray_img_path).convert("RGB")
         opencv_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
@@ -102,30 +100,31 @@ class crawler:
         if opencv_image.size and np.all(np.isfinite(opencv_image)):
             std_dev = np.std(opencv_image)
             print(std_dev)
-            return std_dev < 5
+            return std_dev < 3
         return True
         
 
     def get_focus_element_selector(self) -> str:
         command = """
         function getCssSelector(element) {
-            if (element.id) {
-                return `#${element.id}`;  // id가 있는 경우
-            } else {
-                let path = [];
-                while (element && element.nodeType === Node.ELEMENT_NODE) {
-                    let selector = element.nodeName.toLowerCase();
-                    if (element.parentNode) {
-                        let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
-                        if (siblings.length > 1) {
-                            selector += `:nth-child(${Array.prototype.indexOf.call(element.parentNode.children, element) + 1})`;
-                        }
+            let path = [];
+            while (element && element.nodeType === Node.ELEMENT_NODE) {
+                let selector = element.nodeName.toLowerCase();
+
+                // 부모에서 동일한 태그 이름을 가진 형제 요소들만 필터링
+                if (element.parentNode) {
+                    let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
+                    if (siblings.length > 1) {
+                        // nth-of-type을 사용하여 정확한 인덱스를 지정
+                        let index = Array.prototype.indexOf.call(siblings, element) + 1;
+                        selector += `:nth-of-type(${index})`;
                     }
-                    path.unshift(selector);
-                    element = element.parentNode;
                 }
-                return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
+                
+                path.unshift(selector);
+                element = element.parentNode;
             }
+            return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
         }
         return getCssSelector(document.activeElement);
         """
@@ -176,23 +175,24 @@ class crawler:
     def auto_loading_audio_check(self) -> str:
         command = """
         function getCssSelector(element) {
-            if (element.id) {
-                return `#${element.id}`;  // id가 있는 경우
-            } else {
-                let path = [];
-                while (element && element.nodeType === Node.ELEMENT_NODE) {
-                    let selector = element.nodeName.toLowerCase();
-                    if (element.parentNode) {
-                        let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
-                        if (siblings.length > 1) {
-                            selector += `:nth-child(${Array.prototype.indexOf.call(element.parentNode.children, element) + 1})`;
-                        }
+            let path = [];
+            while (element && element.nodeType === Node.ELEMENT_NODE) {
+                let selector = element.nodeName.toLowerCase();
+
+                // 부모에서 동일한 태그 이름을 가진 형제 요소들만 필터링
+                if (element.parentNode) {
+                    let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
+                    if (siblings.length > 1) {
+                        // nth-of-type을 사용하여 정확한 인덱스를 지정
+                        let index = Array.prototype.indexOf.call(siblings, element) + 1;
+                        selector += `:nth-of-type(${index})`;
                     }
-                    path.unshift(selector);
-                    element = element.parentNode;
                 }
-                return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
+                
+                path.unshift(selector);
+                element = element.parentNode;
             }
+            return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
         }
         const mediaElements = [...document.querySelectorAll('audio')];
         const element = mediaElements.find(media => !media.paused);
@@ -216,23 +216,24 @@ class crawler:
     def auto_loading_video_check(self) -> str:
         command = """
         function getCssSelector(element) {
-            if (element.id) {
-                return `#${element.id}`;  // id가 있는 경우
-            } else {
-                let path = [];
-                while (element && element.nodeType === Node.ELEMENT_NODE) {
-                    let selector = element.nodeName.toLowerCase();
-                    if (element.parentNode) {
-                        let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
-                        if (siblings.length > 1) {
-                            selector += `:nth-child(${Array.prototype.indexOf.call(element.parentNode.children, element) + 1})`;
-                        }
+            let path = [];
+            while (element && element.nodeType === Node.ELEMENT_NODE) {
+                let selector = element.nodeName.toLowerCase();
+
+                // 부모에서 동일한 태그 이름을 가진 형제 요소들만 필터링
+                if (element.parentNode) {
+                    let siblings = Array.from(element.parentNode.children).filter((e) => e.nodeName === element.nodeName);
+                    if (siblings.length > 1) {
+                        // nth-of-type을 사용하여 정확한 인덱스를 지정
+                        let index = Array.prototype.indexOf.call(siblings, element) + 1;
+                        selector += `:nth-of-type(${index})`;
                     }
-                    path.unshift(selector);
-                    element = element.parentNode;
                 }
-                return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
+                
+                path.unshift(selector);
+                element = element.parentNode;
             }
+            return path.join(" > ");  // 부모-자식 관계로 셀렉터 생성
         }
         const mediaElements = [...document.querySelectorAll('video')];
         const element = mediaElements.find(media => !media.paused);
@@ -247,9 +248,10 @@ class crawler:
         # 각 iframe을 순회
         for index, iframe in enumerate(iframes):
             # iframe으로 전환
+            selector = self.get_css_path(iframe)
             self.driver.switch_to.frame(iframe)
             result = self.driver.execute_script(command)
-            if(result): return f"iframe:nth-of-type({index+1})"
+            if(result): return selector
             self.driver.switch_to.default_content()
         return ""
     
@@ -274,42 +276,43 @@ class crawler:
         img_list = self.driver.find_elements(By.TAG_NAME, "img")
         for index, element in enumerate(img_list, start=1):
             color_img_path, gray_img_path = self.capture_element(element)
-            
-            img_selector_dict[f"img:nth-of-type({index})"] = {
-                'color_img_path' : color_img_path,
-                'gray_img_path' : gray_img_path
-            }
+            if color_img_path:
+                selector = self.get_css_path(element)
+                img_selector_dict[selector] = {
+                    'color_img_path' : color_img_path,
+                    'gray_img_path' : gray_img_path
+                }
         
         input_list = self.driver.find_elements(By.CSS_SELECTOR, "input[type='image']")
         for index, element in enumerate(input_list, start=1):
             color_img_path, gray_img_path = self.capture_element(element)
-            
-            img_selector_dict[f'input[type="image"]:nth-of-type({index})'] = {
-                'color_img_path' : color_img_path,
-                'gray_img_path' : gray_img_path
-            }
+            if color_img_path:
+                selector = self.get_css_path(element)
+                img_selector_dict[selector] = {
+                    'color_img_path' : color_img_path,
+                    'gray_img_path' : gray_img_path
+                }
         
         area_list = self.driver.find_elements(By.TAG_NAME, "area")
         for index, element in enumerate(area_list, start=1):
             color_img_path, gray_img_path = self.capture_element(element)
-            
-            img_selector_dict[f'area:nth-of-type({index})'] = {
-                'color_img_path' : color_img_path,
-                'gray_img_path' : gray_img_path
-            }
+            if color_img_path:
+                selector = self.get_css_path(element)
+                img_selector_dict[selector] = {
+                    'color_img_path' : color_img_path,
+                    'gray_img_path' : gray_img_path
+                }
         return img_selector_dict
     
     def all_control_capture(self):
         selector_dict = {}
         
-        input_list = self.driver.find_elements(By.TAG_NAME, "input")
+        input_list = self.driver.find_elements(By.CSS_SELECTOR, 'input:not([type="hidden"]):not([type="image"])')
         for index, element in enumerate(input_list, start=1):
-            element_type = element.get_attribute("type")
-            
-            if element_type and element_type not in ["hidden", "image"]:
-                color_img_path, gray_img_path = self.capture_element(element)
-                
-                selector_dict[f"input:nth-of-type({index})"] = {
+            color_img_path, gray_img_path = self.capture_element(element)
+            if color_img_path:
+                selector = self.get_css_path(element)
+                selector_dict[selector] = {
                     'color_img_path' : color_img_path,
                     'gray_img_path' : gray_img_path
                 }
@@ -317,31 +320,33 @@ class crawler:
         button_list = self.driver.find_elements(By.TAG_NAME, "button")
         for index, element in enumerate(button_list, start=1):
             color_img_path, gray_img_path = self.capture_element(element)
-            
-            selector_dict[f'button:nth-of-type({index})'] = {
-                'color_img_path' : color_img_path,
-                'gray_img_path' : gray_img_path
-            }
+            if color_img_path:
+                selector = self.get_css_path(element)
+                selector_dict[selector] = {
+                    'color_img_path' : color_img_path,
+                    'gray_img_path' : gray_img_path
+                }
         
         textarea_list = self.driver.find_elements(By.TAG_NAME, "textarea")
         for index, element in enumerate(textarea_list, start=1):
             color_img_path, gray_img_path = self.capture_element(element)
-            
-            selector_dict[f'textarea:nth-of-type({index})'] = {
-                'color_img_path' : color_img_path,
-                'gray_img_path' : gray_img_path
-            }
+            if color_img_path:
+                selector = self.get_css_path(element)
+                selector_dict[selector] = {
+                    'color_img_path' : color_img_path,
+                    'gray_img_path' : gray_img_path
+                }
         return selector_dict
     
     def all_control_size(self):
         selector_dict = {}
-                
-        input_list = self.driver.find_elements(By.TAG_NAME, "input")
+        
+        input_list = self.driver.find_elements(By.CSS_SELECTOR, 'input:not([type="hidden"]):not([type="image"])')
         for index, element in enumerate(input_list, start=1):
-            element_type = element.get_attribute("type")
             size = element.size
-            if element_type and element_type not in ["hidden", "image"]:
-                selector_dict[f"input:nth-of-type({index})"] = {
+            if(size['width'] > 0):
+                selector = self.get_css_path(element)
+                selector_dict[selector] = {
                     'width' : size["width"],
                     'height' : size["height"],
                     'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
@@ -349,21 +354,48 @@ class crawler:
         
         button_list = self.driver.find_elements(By.TAG_NAME, "button")
         for index, element in enumerate(button_list, start=1):
-            element_type = element.get_attribute("type")
             size = element.size
-            selector_dict[f'button:nth-of-type({index})'] = {
-                    'width' : size["width"],
-                    'height' : size["height"],
-                    'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
-            }
+            if(size['width'] > 0):
+                selector = self.get_css_path(element)
+                selector_dict[selector] = {
+                        'width' : size["width"],
+                        'height' : size["height"],
+                        'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
+                }
         
         textarea_list = self.driver.find_elements(By.TAG_NAME, "textarea")
         for index, element in enumerate(textarea_list, start=1):
-            element_type = element.get_attribute("type")
             size = element.size
-            selector_dict[f'textarea:nth-of-type({index})'] = {
-                    'width' : size["width"],
-                    'height' : size["height"],
-                    'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
-            }
+            if(size['width'] > 0):
+                selector = self.get_css_path(element)
+                selector_dict[selector] = {
+                        'width' : size["width"],
+                        'height' : size["height"],
+                        'diagonal' : math.sqrt(size["width"] ** 2 + size["height"] ** 2)
+                }
         return selector_dict
+    
+    def get_css_path(self, element):
+        """Generate CSS path of a Selenium WebElement, counting only previous siblings."""
+        path = []
+        while element is not None:
+            # 태그 이름 가져오기
+            tag = element.tag_name
+            selector = tag
+
+            if tag == "html":
+                path.insert(0, selector)
+                break
+
+            # 이전 형제 요소 중 같은 태그 개수 세기
+            previous_siblings = element.find_elements(By.XPATH, f"./preceding-sibling::{tag}")
+            if previous_siblings:
+                index = len(previous_siblings) + 1
+                selector += f":nth-of-type({index})"
+
+            path.insert(0, selector)
+
+            # 부모로 이동
+            element = element.find_element(By.XPATH, "./..")
+
+        return " > ".join(path)

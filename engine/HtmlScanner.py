@@ -26,7 +26,7 @@ class html_scanner:
             # 필드별 상태 설정
             if not img_alt:
                 scanDTO = DTO.ScanDTO(
-                    errortype="01.레이블 제공",
+                    errortype="01.적절한 대체 텍스트 제공",
                     errormessage=textwrap.dedent(
                         """\
                         <img>의 alt에는 적절한 대체 텍스트를 제공해야 합니다.
@@ -34,23 +34,30 @@ class html_scanner:
                         """
                     )
                 )
-                css_selector = f'img:nth-of-type({index})'
-                color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
-                gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
+                css_selector = self.get_css_path(field)
+                
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
-                    colorimg=color_img_res['name'],
-                    grayimg=gray_img_res['name']
                 )
+                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                    color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
+                    gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
+                    itemDTO = DTO.ItemDTO(
+                        body=field.prettify(),
+                        css_selector=css_selector,
+                        colorimg=color_img_res['name'],
+                        grayimg=gray_img_res['name']
+                    )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
         # 각 입력 필드에 대해 검사
         for index, field in enumerate(input_fields, start=1):
             img_alt = field.get('alt', None)
             # 필드별 상태 설정
             if not img_alt:
                 scanDTO = DTO.ScanDTO(
-                    errortype="01.레이블 제공",
+                    errortype="01.적절한 대체 텍스트 제공",
                     errormessage=textwrap.dedent(
                         """\
                         <input[type="image"]>의 alt에는 적절한 대체 텍스트를 제공해야 합니다.
@@ -58,15 +65,20 @@ class html_scanner:
                         """
                     )
                 )
-                css_selector = f'input[type="image"]:nth-of-type({index})'
-                color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
-                gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
+                css_selector = self.get_css_path(field)
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
-                    colorimg=color_img_res['name'],
-                    grayimg=gray_img_res['name']
                 )
+                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                    color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
+                    gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
+                    itemDTO = DTO.ItemDTO(
+                        body=field.prettify(),
+                        css_selector=css_selector,
+                        colorimg=color_img_res['name'],
+                        grayimg=gray_img_res['name']
+                    )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         # 각 입력 필드에 대해 검사
         for index, field in enumerate(area_fields, start=1):
@@ -74,7 +86,7 @@ class html_scanner:
             # 필드별 상태 설정
             if not img_alt:
                 scanDTO = DTO.ScanDTO(
-                    errortype="01.레이블 제공",
+                    errortype="01.적절한 대체 텍스트 제공",
                     errormessage=textwrap.dedent(
                         """\
                         <area>의 alt에는 적절한 대체 텍스트를 제공해야 합니다.
@@ -82,15 +94,20 @@ class html_scanner:
                         """
                     )
                 )
-                css_selector=f'area:nth-of-type({index})'
-                color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
-                gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
+                css_selector = self.get_css_path(field)
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
-                    colorimg=color_img_res['name'],
-                    grayimg=gray_img_res['name']
                 )
+                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                    color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
+                    gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
+                    itemDTO = DTO.ItemDTO(
+                        body=field.prettify(),
+                        css_selector=css_selector,
+                        colorimg=color_img_res['name'],
+                        grayimg=gray_img_res['name']
+                    )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
         
@@ -136,15 +153,22 @@ class html_scanner:
     def check_tab_loop_item(self, tab_selector, tab_index, tab_img_color, tab_img_gray):
         error_message = []
         print(f"check_tab_loop_item : {tab_selector}")
-        color_img_res = Api.post_create_img_item(tab_img_color)
-        gray_img_res = Api.post_create_img_item(tab_img_gray)
+
         itemDTO = DTO.ItemDTO(
             body=self.soup.select_one(tab_selector).prettify(),
             css_selector= tab_selector,
             tabindex=tab_index,
-            colorimg=color_img_res['name'],
-            grayimg=gray_img_res['name']
-        )
+        )        
+        if(tab_img_color):
+            color_img_res = Api.post_create_img_item(tab_img_color)
+            gray_img_res = Api.post_create_img_item(tab_img_gray)
+            itemDTO = DTO.ItemDTO(
+                body=self.soup.select_one(tab_selector).prettify(),
+                css_selector= tab_selector,
+                tabindex=tab_index,
+                colorimg=color_img_res['name'],
+                grayimg=gray_img_res['name']
+            )
         scanDTO = DTO.ScanDTO(
             errortype="08.키보드 사용 보장",
             errormessage="키보드를 사용한 초점 이동이 보장되어야 한다."
@@ -205,10 +229,10 @@ class html_scanner:
 
         # 각 입력 필드에 대해 검사
         for index, field in enumerate(input_fields, start=1):
-            css_selector = f'input:not([type="hidden"]):not([type="image"]):nth-of-type({index})'
+            css_selector = self.get_css_path(field)
             
             # 필드별 상태 설정
-            if css_selector in control_size_dict and control_size_dict[css_selector]['diagonal'] <= MIN_DIAGONAL_MM:
+            if(css_selector in control_size_dict and control_size_dict[css_selector]['diagonal'] <= MIN_DIAGONAL_MM):
                 diagonal = control_size_dict[css_selector]['diagonal']
                 scanDTO = DTO.ScanDTO(
                     errortype="10.조작 가능",
@@ -216,18 +240,23 @@ class html_scanner:
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
                     )
                 )
-                color_img_res = Api.post_create_img_item(control_img_dict[css_selector]['color_img_path'])
-                gray_img_res = Api.post_create_img_item(control_img_dict[css_selector]['gray_img_path'])
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
-                    colorimg=color_img_res['name'],
-                    grayimg=gray_img_res['name']
                 )
+                if(css_selector in control_img_dict and control_img_dict[css_selector]['color_img_path']):
+                    color_img_res = Api.post_create_img_item(control_img_dict[css_selector]['color_img_path'])
+                    gray_img_res = Api.post_create_img_item(control_img_dict[css_selector]['gray_img_path'])
+                    itemDTO = DTO.ItemDTO(
+                        body=field.prettify(),
+                        css_selector=css_selector,
+                        colorimg=color_img_res['name'],
+                        grayimg=gray_img_res['name']
+                    )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         # 각 입력 필드에 대해 검사
         for index, field in enumerate(textarea_fields, start=1):
-            css_selector = f'textarea:nth-of-type({index})'
+            css_selector = self.get_css_path(field)
             
             # 필드별 상태 설정
             if css_selector in control_size_dict and control_size_dict[css_selector]['diagonal'] <= MIN_DIAGONAL_MM:
@@ -238,18 +267,23 @@ class html_scanner:
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
                     )
                 )
-                color_img_res = Api.post_create_img_item(control_img_dict[css_selector]['color_img_path'])
-                gray_img_res = Api.post_create_img_item(control_img_dict[css_selector]['gray_img_path'])
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
-                    colorimg=color_img_res['name'],
-                    grayimg=gray_img_res['name']
                 )
+                if(css_selector in control_img_dict and control_img_dict[css_selector]['color_img_path']):
+                    color_img_res = Api.post_create_img_item(control_img_dict[css_selector]['color_img_path'])
+                    gray_img_res = Api.post_create_img_item(control_img_dict[css_selector]['gray_img_path'])
+                    itemDTO = DTO.ItemDTO(
+                        body=field.prettify(),
+                        css_selector=css_selector,
+                        colorimg=color_img_res['name'],
+                        grayimg=gray_img_res['name']
+                    )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         # 각 입력 필드에 대해 검사
         for index, field in enumerate(button_fields, start=1):
-            css_selector = f'button:nth-of-type({index})'
+            css_selector = self.get_css_path(field)
             
             # 필드별 상태 설정
             if css_selector in control_size_dict and control_size_dict[css_selector]['diagonal'] <= MIN_DIAGONAL_MM:
@@ -260,14 +294,19 @@ class html_scanner:
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
                     )
                 )
-                color_img_res = Api.post_create_img_item(control_img_dict[css_selector]['color_img_path'])
-                gray_img_res = Api.post_create_img_item(control_img_dict[css_selector]['gray_img_path'])
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
-                    colorimg=color_img_res['name'],
-                    grayimg=gray_img_res['name']
                 )
+                if(css_selector in control_img_dict and control_img_dict[css_selector]['color_img_path']):
+                    color_img_res = Api.post_create_img_item(control_img_dict[css_selector]['color_img_path'])
+                    gray_img_res = Api.post_create_img_item(control_img_dict[css_selector]['gray_img_path'])
+                    itemDTO = DTO.ItemDTO(
+                        body=field.prettify(),
+                        css_selector=css_selector,
+                        colorimg=color_img_res['name'],
+                        grayimg=gray_img_res['name']
+                    )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
     
@@ -316,6 +355,9 @@ class html_scanner:
                 css_selector=first_tab_select
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
+        
+        
         # 14-3.건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다.
         if(is_skip_link and not self.soup.select_one(href_attribute)):
             scanDTO = DTO.ScanDTO(
@@ -367,7 +409,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=iframe.prettify(),
-                    css_selector=f"iframe:nth-of-type({i+1})"
+                    css_selector = self.get_css_path(iframe)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
@@ -385,7 +427,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=a_tag.prettify(),
-                    css_selector=f"a:nth-of-type({i+1})"
+                    css_selector = self.get_css_path(a_tag)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
@@ -423,7 +465,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=a_tag.prettify(),
-                    css_selector=f"a:nth-of-type({i+1})"
+                    css_selector = self.get_css_path(a_tag)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
             elif a_onclick and "window.open" in a_onclick:
@@ -433,7 +475,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=a_tag.prettify(),
-                    css_selector=f"a:nth-of-type({i+1})"
+                    css_selector = self.get_css_path(a_tag)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
@@ -463,7 +505,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=table.prettify(),
-                    css_selector=f"table:nth-of-type({index})"
+                    css_selector = self.get_css_path(table)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
             # 규칙 2: th가 있지만 caption이 없는 경우
@@ -480,7 +522,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=table.prettify(),
-                    css_selector=f"table:nth-of-type({index})"
+                    css_selector = self.get_css_path(table)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
@@ -512,7 +554,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
-                    css_selector=f'input:not([type="hidden"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="image"]):nth-of-type({index})'
+                    css_selector = self.get_css_path(field)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         # 각 입력 필드에 대해 검사
@@ -531,7 +573,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
-                    css_selector=f'textarea:nth-of-type({index})'
+                    css_selector = self.get_css_path(field)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         # 각 입력 필드에 대해 검사
@@ -550,7 +592,7 @@ class html_scanner:
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
-                    css_selector=f'select:nth-of-type({index})'
+                    css_selector = self.get_css_path(field)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
@@ -604,6 +646,24 @@ class html_scanner:
             return error_message
         return None
     
+    def get_css_path(self, element):
+        """Generate CSS path of a BeautifulSoup element, excluding [document]."""
+        path = []
+        while element and element.name != "[document]":
+            # 태그 이름 가져오기
+            selector = element.name
+
+            # 형제 중 같은 태그가 있는 경우 nth-of-type으로 구분
+            if element.parent:
+                siblings = element.find_previous_siblings(element.name)
+                if siblings:
+                    index = len(siblings) + 1
+                    selector += f":nth-of-type({index})"
+            
+            path.insert(0, selector)
+            element = element.parent
+
+        return " > ".join(path)
     
 def extract_tag_head(name : str ,tag : Tag):
     taghead = f"<{name}"

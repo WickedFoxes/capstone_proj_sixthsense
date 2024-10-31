@@ -111,8 +111,8 @@ while(True):
                 create_item = Api.post_create_item(request_page["id"], check_image_alt["item"])
                 create_scan = Api.post_create_scan(request_page["id"], create_item["id"], check_image_alt["scan"])
             
-            # 9.초점 이동
-            # 9-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
+            # 09.초점 이동
+            # 09-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
             tab_hidden_error_check_list = scanner.check_tab_hidden_item_big(tab_hidden_dict)
             for tab_hidden_error_check in tab_hidden_error_check_list:
                 create_item = Api.post_create_item(request_page["id"], tab_hidden_error_check["item"])
