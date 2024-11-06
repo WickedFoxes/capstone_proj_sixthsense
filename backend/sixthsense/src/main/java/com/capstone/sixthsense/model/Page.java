@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.capstone.sixthsense.enumeration.PageType;
 import com.capstone.sixthsense.enumeration.ScanStatus;
 
 import jakarta.persistence.CascadeType;
@@ -36,12 +37,18 @@ public class Page {
 	private String title;
 	
 	@Column(name = "url")
-	@NotEmpty
 	private String url;
 	
 	@Column(name = "status")
 	@Enumerated(EnumType.STRING)
 	private ScanStatus status;
+	
+	@Column(name = "pagetype")
+	@Enumerated(EnumType.STRING)
+	private PageType pagetype = PageType.URL;
+	
+	@Column(columnDefinition = "TEXT", name = "htmlbody")
+	private String htmlbody; 
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id", referencedColumnName="id")
@@ -113,6 +120,22 @@ public class Page {
 
 	public List<Scan> getScans() {
 		return scans;
+	}
+
+	public String getHtmlbody() {
+		return htmlbody;
+	}
+
+	public void setHtmlbody(String htmlbody) {
+		this.htmlbody = htmlbody;
+	}
+
+	public PageType getPagetype() {
+		return pagetype;
+	}
+
+	public void setPagetype(PageType pagetype) {
+		this.pagetype = pagetype;
 	}
 	
 }

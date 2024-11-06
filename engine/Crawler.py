@@ -37,12 +37,11 @@ class crawler:
         # 크롬 드라이버 설정
         options = Options()
         options.add_argument("headless")  # headless 모드
-        # options.add_argument("window-size=1920x1080")  # 창 크기 설정
         options.add_argument("--start-maximized")
         # 창을 뜨지 않게 하는 추가 옵션
-        # options.add_argument("--no-sandbox")
-        # options.add_argument("--disable-dev-shm-usage")
-        # options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
         options.add_experimental_option("prefs", {
             "download.default_directory": os.path.join(self.download_path),
         })
@@ -57,6 +56,12 @@ class crawler:
         # if os.path.exists(self.download_path):
         #     shutil.rmtree(self.download_path)
 
+    def create_html(self, htmlbody):
+        filepath = self.download_path+'\\'+str(uuid.uuid4())+'.html'
+        with open(filepath, "w", encoding="utf-8") as file:
+            file.write(htmlbody)
+        return filepath
+    
     def get(self, url:str):
         self.driver.get(url)
     
@@ -399,3 +404,7 @@ class crawler:
             element = element.find_element(By.XPATH, "./..")
 
         return " > ".join(path)
+    
+    def save_screenshot(self):
+        capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
+        self.driver.save_screenshot(capture_img_path)

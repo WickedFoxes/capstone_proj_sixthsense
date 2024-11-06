@@ -28,8 +28,12 @@ while(True):
 
         # 크롤러를 사용하여 HTML 수집
         # 작은 화면에서 실행
-        crawler = Crawler.crawler()
-        crawler.get(request_page["url"])
+        crawler = Crawler.crawler()        
+        if(request_page["pagetype"] == "TEXT"):
+            url = crawler.create_html(request_page["htmlbody"])
+            crawler.get(url)
+        else:
+            crawler.get(request_page["url"])
         window_size_fullscreen = crawler.driver.get_window_size()
         print(window_size_fullscreen)
         crawler.driver.set_window_size(window_size_fullscreen["width"]/3, window_size_fullscreen["height"])

@@ -317,8 +317,9 @@ class html_scanner:
     def check_skip_link(self, tab_selector_dict, tab_hidden_dict):
         error_message = []
         header_tag = self.soup.find('header')
+        header_id_tag = self.soup.select('#header')
         # 헤더 태그가 없으면 리턴
-        if(not header_tag or not tab_selector_dict):
+        if(not header_tag or not header_id_tag or not tab_selector_dict):
             return error_message
         
         # dict의 value를 기준으로 key를 정렬
