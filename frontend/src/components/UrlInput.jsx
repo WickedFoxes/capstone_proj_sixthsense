@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Button, Form, Row, Col, Container } from "react-bootstrap";
 import axios from "axios";
 import { API } from "../config";
+import ReportExport from "./ReportExport"; // ReportExport 컴포넌트 가져오기
 
 axios.defaults.withCredentials = true;
 
@@ -114,14 +115,28 @@ function UrlInput() {
         </Row>
       </Form>
 
-      <div className="mt-4" style={{ textAlign: "right", width: "70%" }}>
-        <Button
-          variant="success"
-          onClick={handleAllPageRun}
-          style={{ width: "auto" }}
-        >
-          페이지 전체 검사
-        </Button>
+      <div
+        className="mt-4 d-flex justify-content-between"
+        style={{ width: "70%" }}
+      >
+        {/* 보고서 생성 버튼 */}
+        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+          <ReportExport />
+        </div>
+
+        {/* 페이지 전체 검사 버튼 */}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="success"
+            onClick={handleAllPageRun}
+            style={{
+              whiteSpace: "nowrap", // 텍스트 줄바꿈 방지
+              padding: "0.5rem 1rem", // 적절한 여백
+            }}
+          >
+            페이지 전체 검사
+          </Button>
+        </div>
       </div>
     </Container>
   );
