@@ -76,7 +76,11 @@ class crawler:
     def page_loading_wait(self, sec=10) -> bool:
         while sec > 0:
             time.sleep(0.5)  # 5초 대기
-            if self.driver.execute_script("return document.readyState") == "complete": return True
+            if(
+                self.driver.execute_script("return document.readyState") == "complete"
+                and self.driver.execute_script("return jQuery.active == 0")
+            ): 
+                return True
             sec -= 0.5
         return False
 
@@ -135,7 +139,7 @@ class crawler:
         """
         return self.driver.execute_script(command)
     
-    def tab_until_finish(self, tab_limit=300, tab_cnt_limit=20):
+    def tab_until_finish(self, tab_limit=500, tab_cnt_limit=50):
         # 탭 이동 후, item 생성
         tab_selector_dict = {}
         tab_hidden_dict = {}
@@ -261,7 +265,9 @@ class crawler:
         return ""
     
     def capture_element(self, element):
-        if(element.size["width"] == 0): return None, None
+        if(element is None 
+           or element.size["width"] == 0): 
+            return None, None
         capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
         # 해당 요소를 캡처하여 이미지로 저장
         element.screenshot(capture_img_path)

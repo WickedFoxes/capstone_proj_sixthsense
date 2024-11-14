@@ -150,7 +150,12 @@ class html_scanner:
     
     # 8.키보드 사용 보장
     # 8-1.키보드를 사용한 이동이 보장되어야 한다.
-    def check_tab_loop_item(self, tab_selector, tab_index, tab_img_color, tab_img_gray):
+    def check_tab_loop_item(self, 
+                            tab_selector, 
+                            tab_index, 
+                            window_size,
+                            tab_img_color, 
+                            tab_img_gray):
         error_message = []
         print(f"check_tab_loop_item : {tab_selector}")
 
@@ -170,25 +175,17 @@ class html_scanner:
                 grayimg=gray_img_res['name']
             )
         scanDTO = DTO.ScanDTO(
-            errortype="08.키보드 사용 보장",
+            errortype=f"08.키보드 사용 보장(width:{window_size["width"]}px, height:{window_size["height"]}px)",
             errormessage="키보드를 사용한 초점 이동이 보장되어야 한다."
         )
         error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
-    def check_tab_loop_item_small(self, tab_selector, tab_index, tab_img_color, tab_img_gray):
-        error_message = self.check_tab_loop_item(tab_selector, tab_index, tab_img_color, tab_img_gray)
-        for message in error_message:
-            message["scan"]["errormessage"] ="키보드를 사용한 이동이 보장되어야 한다.(작은 화면)"
-        return error_message
-    def check_tab_loop_item_big(self, tab_selector, tab_index, tab_img_color, tab_img_gray):
-        error_message = self.check_tab_loop_item(tab_selector, tab_index, tab_img_color, tab_img_gray)
-        for message in error_message:
-            message["scan"]["errormessage"] ="키보드를 사용한 이동이 보장되어야 한다.(전체 화면)"
-        return error_message
     
     # 9.초점 이동
     # 9-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
-    def check_tab_hidden_item(self, tab_hidden_dict):
+    def check_tab_hidden_item(self, 
+                              tab_hidden_dict,
+                              window_size):
         error_message = []
         for hidden_selector, tab_index in tab_hidden_dict.items():
             itemDTO = DTO.ItemDTO(
@@ -197,20 +194,10 @@ class html_scanner:
                 tabindex=tab_index,
             )
             scanDTO = DTO.ScanDTO(
-                errortype="09.초점 이동",
+                errortype=f"09.초점 이동(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                 errormessage="키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다."
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
-        return error_message
-    def check_tab_hidden_item_small(self, tab_hidden_dict):
-        error_message = self.check_tab_hidden_item(tab_hidden_dict)
-        for message in error_message:
-            message["scan"]["errormessage"] ="키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.(작은 화면)"
-        return error_message
-    def check_tab_hidden_item_big(self, tab_hidden_dict):
-        error_message = self.check_tab_hidden_item(tab_hidden_dict)
-        for message in error_message:
-            message["scan"]["errormessage"] ="키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.(전체 화면)"
         return error_message
 
     # 10.조작 가능
@@ -331,7 +318,7 @@ class html_scanner:
         print(href_attribute)
         
         is_a_tag = first_tab_tag.name == "a"
-        is_skip_link = len(href_attribute) > 1 and href_attribute[0] == "#"
+        is_skip_link = href_attribute and href_attribute[0] == "#"
         is_first_tab_hidden = first_tab_tag in tab_hidden_dict
         
         # 14-1.반복되는 영역이 있는 경우, a태그를 활용한 건너뛰기 링크가 마크업상 최상단에 위치해야 합니다.
