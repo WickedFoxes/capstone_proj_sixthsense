@@ -78,7 +78,7 @@ class crawler:
             time.sleep(0.5)  # 5초 대기
             if(
                 self.driver.execute_script("return document.readyState") == "complete"
-                and self.driver.execute_script("return jQuery.active == 0")
+                and self.driver.execute_script("try{return jQuery.active == 0}catch{return true}")
             ): 
                 return True
             sec -= 0.5
