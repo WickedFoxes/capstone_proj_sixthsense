@@ -152,8 +152,6 @@ public class PageController {
     		map.put("error", e.getMessage());
     		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
 		}
-		
-		
 	}
 	
 	@GetMapping("/page/list/ready/by-key/{enginekey}")
@@ -188,5 +186,24 @@ public class PageController {
     		map.put("error", e.getMessage());
     		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
     	}
+	}
+	
+	@PutMapping("/page/run/by-project/by-key/{project_id}/{enginekey}")
+	public ResponseEntity<Object> runAllPageInProjectWithKey(
+			@PathVariable("project_id") int project_id,
+			@PathVariable("enginekey") String enginekey
+		){
+		try {
+			List<Page> list = pageService.setPagesReadyInProjectWithKey(project_id, enginekey);
+			List<PageDTO> dtolist = new ArrayList<>();
+			for(Page page : list)
+				dtolist.add(new PageDTO(page));
+			return ResponseEntity.status(HttpStatus.OK).body(dtolist);
+			
+		} catch(Exception e) {
+			HashMap<String, String> map = new HashMap<>();
+    		map.put("error", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+		}
 	}
 }
