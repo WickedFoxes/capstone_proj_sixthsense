@@ -67,8 +67,11 @@ def run(request_page):
         video_check = crawler.auto_loading_video_check()
         print(f"audio check : {audio_check}")
         print(f"video check : {video_check}")
+        
         # scanner에서 html 읽기
-        html = crawler.readHTML()
+        crawler.refresh()
+        crawler.driver.set_window_size(window_size_fullscreen["width"], window_size_fullscreen["height"])
+        crawler.page_loading_wait()
         scanner = HtmlScanner.html_scanner(html)
         if(audio_check):
             audio_check_list = scanner.check_auto_audio(audio_check)
@@ -188,10 +191,15 @@ def run(request_page):
 
 if __name__ == '__main__':
     running_tasks = []
-    max_process_num = 4
+    max_process_num = 5
     
     with ProcessPoolExecutor(max_workers=max_process_num) as executor:
         while True:
+            next_schedule_list = Api.get_next_schedule()
+            for next_schedule in next_schedule_list:
+                Api.put_next_schedule(next_schedule["id"])
+                Api.put_project_ready_status(next_schedule["project_id"])
+
             running_tasks = [task for task in running_tasks if not task.done()]
             
             if len(running_tasks) < max_process_num:

@@ -73,7 +73,10 @@ public class SecurityConfig {
 		        		"/page/update/by-key/*",
 		        		"/item/create/by-page/by-key/*/*",
 		        		"/scan/delete/by-page/by-key/*/*",
-		        		"/scan/create/by-page/by-item/by-key/*/*/*",
+		        		"/scan/create/by-page/by-item/by-key/*/*/*",		        		
+		        		"/schedule/update/by-schedule/by-key/*/*",
+		        		"/schedule/list/nextschedule/by-key/*",
+		        		"/page/run/by-project/by-key/*/*",
 		        		"/test/**"
 		        )
 		        .permitAll() // Allow these endpoints without authentication

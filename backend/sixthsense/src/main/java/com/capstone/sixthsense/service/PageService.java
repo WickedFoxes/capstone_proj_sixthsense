@@ -15,6 +15,7 @@ import com.capstone.sixthsense.model.Account;
 import com.capstone.sixthsense.model.Page;
 import com.capstone.sixthsense.model.Project;
 import com.capstone.sixthsense.repository.PageRepo;
+import com.capstone.sixthsense.repository.ProjectRepo;
 
 @Service
 public class PageService {
@@ -23,6 +24,9 @@ public class PageService {
 	
 	@Autowired
 	private PageRepo repo;
+	@Autowired
+	private ProjectRepo project_repo;	
+	
 	public Page getPage(int id, Account account) {
 		Page page = repo.findById(id);
 		if(page == null) {
@@ -108,7 +112,7 @@ public class PageService {
 		}
 		List<Page> pages = repo.findAllByProject(project);
 		for(Page page : pages) {
-			if(page.getStatus().equals(ScanStatus.COMPLETE)) {
+			if(page.getStatus().equals(ScanStatus.COMPLETE) || page.getStatus().equals(ScanStatus.ERROR)) {
 				page.setStatus(ScanStatus.READY);
 				repo.save(page);
 			}
@@ -123,7 +127,7 @@ public class PageService {
 		return repo.findAllByStatus(ScanStatus.READY);
 	}
 	
-	public Page getPageWithKey(int id, String key) {
+	public Page getPageWithKey(long id, String key) {
 		Page page = repo.findById(id);
 		if(page == null) {
 			throw new NotExistException("No data found.");
@@ -144,5 +148,22 @@ public class PageService {
 		}
 		page.setStatus(pageDTO.getStatus());
 		return repo.save(page);
+	}
+	public List<Page> setPagesReadyInProjectWithKey(long project_id, String key) {
+		if(!enginekey.equals(key)) {
+			throw new NotHaveAuthException("you don't have Auth");
+		}
+		Project project = project_repo.findById(project_id);
+		if(project == null) {
+			throw new NotExistException("No data found.");
+		}
+		List<Page> pages = repo.findAllByProject(project);
+		for(Page page : pages) {
+			if(page.getStatus().equals(ScanStatus.COMPLETE) || page.getStatus().equals(ScanStatus.ERROR)) {
+				page.setStatus(ScanStatus.READY);
+				repo.save(page);
+			}
+		}
+		return pages;
 	}
 }
