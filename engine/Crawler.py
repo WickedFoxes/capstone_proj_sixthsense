@@ -72,6 +72,10 @@ class crawler:
         # 페이지 새로고침
         self.driver.refresh()
     
+    def set_width_rate(self, width_rate=0.33):
+        self.driver.set_window_size(self.window_size["width"]*width_rate, self.window_size["height"])
+        self.window_size=self.driver.get_window_size()
+
     def maximize_window(self):
         self.driver.maximize_window()
         self.window_size = self.driver.get_window_size()

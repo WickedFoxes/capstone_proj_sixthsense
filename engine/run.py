@@ -8,7 +8,7 @@ import ImageDetector
 import ImageProcess
 import os
 
-def image_detection_process(request_page, width=1920, height=1080):
+def image_detection_process(request_page):
     crawler = Crawler.crawler()
     try:
         if(request_page["pagetype"] == "TEXT"):
@@ -94,7 +94,7 @@ def image_detection_process(request_page, width=1920, height=1080):
         return False
     return True
 
-def tab_action_process(request_page, width=1920, height=1080):
+def tab_action_process(request_page, width_rate=1.0):
     crawler = Crawler.crawler()
     try:
         if(request_page["pagetype"] == "TEXT"):
@@ -111,6 +111,7 @@ def tab_action_process(request_page, width=1920, height=1080):
 
         # 브라우저 사이즈 설정
         crawler.maximize_window()
+        crawler.set_width_rate(width_rate)
         window_size = crawler.window_size
 
         # 탭으로 끝까지 이동
@@ -282,8 +283,8 @@ def run(request_page):
 
     with ThreadPoolExecutor(max_workers=4) as executor:  # 최대 4개의 스레드 사용
         futures = [
-            executor.submit(tab_action_process, request_page, 1920, 1080),
-            executor.submit(tab_action_process, request_page, 1920 / 3, 1080),
+            executor.submit(tab_action_process, request_page, 1.0),
+            executor.submit(tab_action_process, request_page, 0.33),
             executor.submit(default_selenium_process, request_page),
             executor.submit(image_detection_process, request_page)
         ]
@@ -301,7 +302,8 @@ def run(request_page):
     # 페이지 상태 변경 : RUNNING -> COMPLETE
     if(results[0]
        and results[1]
-       and results[2]):
+       and results[2]
+       and results[3]):
         Api.put_complete_status(request_page["id"])
     else:
         Api.put_error_status(request_page["id"])
