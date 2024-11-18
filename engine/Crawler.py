@@ -103,7 +103,7 @@ class crawler:
         color_img_path, gray_img_path = self.capture_element(element)
         return color_img_path, gray_img_path
     
-    def press_tab(self, sec=0.3):
+    def press_tab(self, sec=0.2):
         # ActionChains(self.driver).key_down(Keys.TAB)
         focused_element = self.driver.switch_to.active_element
         focused_element.send_keys(Keys.TAB)
@@ -152,7 +152,7 @@ class crawler:
         """
         return self.driver.execute_script(command)
     
-    def tab_until_finish(self, tab_limit=500, tab_cnt_limit=50):
+    def tab_until_finish(self, tab_limit=300, tab_cnt_limit=20):
         # 탭 이동 후, item 생성
         tab_selector_dict = {}
         tab_hidden_dict = {}

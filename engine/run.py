@@ -75,7 +75,6 @@ def image_detection_process(request_page, width=1920, height=1080):
 
         # 02.자막 제공
         video_and_caption_check_list = scanner.check_video_and_caption(video_result)
-        print(video_and_caption_check_list)
         for video_and_caption_check in video_and_caption_check_list:
             create_item = Api.post_create_item(request_page["id"], video_and_caption_check["item"])
             create_scan = Api.post_create_scan(request_page["id"], create_item["id"], video_and_caption_check["scan"])
@@ -93,10 +92,6 @@ def image_detection_process(request_page, width=1920, height=1080):
         # 크롤러 종료
         crawler.close()
         return False
-    
-    for image in result:
-        os.remove(image)
-    
     return True
 
 def tab_action_process(request_page, width=1920, height=1080):
@@ -287,7 +282,7 @@ def default_selenium_process(request_page, width=1920, height=1080):
 def run(request_page):
     print(request_page["url"])
 
-    with ThreadPoolExecutor(max_workers=4) as executor:  # 최대 3개의 스레드 사용
+    with ThreadPoolExecutor(max_workers=4) as executor:  # 최대 4개의 스레드 사용
         futures = [
             executor.submit(tab_action_process, request_page, 1920, 1080),
             executor.submit(tab_action_process, request_page, 1920 / 3, 1080),
@@ -295,11 +290,15 @@ def run(request_page):
             executor.submit(image_detection_process, request_page)
         ]
 
-        # 모든 작업 완료 대기 및 결과 처리
         results = []
         for future in as_completed(futures):
-            result = future.result()  # 결과 가져오기
-            results.append(result)
+            try:
+                result = future.result()  # 결과 가져오기
+                results.append(result)
+            except Exception as e:
+                print(f"Error occurred: {e}")  # 예외 출력
+                results.append({"error": str(e)})  # 에러 내용을 결과에 추가
+        print(results)
     
     # 페이지 상태 변경 : RUNNING -> COMPLETE
     if(results[0]
