@@ -19,13 +19,13 @@ def image_detection_process(request_page, width=1920, height=1080):
             crawler.get(url)
         else:
             crawler.get(request_page["url"])
-        
-        # 브라우저 사이즈 설정
-        window_size = {"width":width, "height":height}
-        crawler.driver.set_window_size(width, height)
 
         # 페이지 읽기 실패하면 Exception raise
         crawler.page_loading_wait()
+
+        # 브라우저 사이즈 설정
+        crawler.maximize_window()
+        window_size = crawler.window_size
 
         # scanner에서 html 읽기
         html = crawler.readHTML()
@@ -105,14 +105,13 @@ def tab_action_process(request_page, width=1920, height=1080):
             crawler.get(url)
         else:
             crawler.get(request_page["url"])
-        
-        # 브라우저 사이즈 설정
-        window_size = {"width":width, "height":height}
-        crawler.set_window_size(width, height)
-        crawler.set_window_size_highest()
 
         # 페이지 읽기 실패하면 Exception raise
         crawler.page_loading_wait()
+
+        # 브라우저 사이즈 설정
+        crawler.maximize_window()
+        window_size = crawler.window_size
 
         # 탭으로 끝까지 이동
         finish_check, tab_selector_dict, tab_hidden_dict = crawler.tab_until_finish()
@@ -193,15 +192,14 @@ def default_selenium_process(request_page, width=1920, height=1080):
             crawler.get(url)
         else:
             crawler.get(request_page["url"])
-        window_size_fullscreen = crawler.driver.get_window_size()
-
-        # 브라우저 사이즈 설정
-        crawler.set_window_size(width, height)
-        crawler.set_window_size_highest()
 
         # 페이지 읽기 실패하면 Exception raise
         crawler.page_loading_wait()
         
+        # 브라우저 사이즈 설정
+        crawler.maximize_window()
+        window_size = crawler.window_size
+
         # scanner에서 html 읽기
         html = crawler.readHTML()
         scanner = HtmlScanner.html_scanner(html)

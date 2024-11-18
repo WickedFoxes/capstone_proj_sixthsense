@@ -25,7 +25,6 @@ import io
 class crawler:
     def __init__(self):
         self.driver = None
-        self.window_size = {"width":1920, "height":1080}
         self.open()
         
     def open(self):
@@ -39,8 +38,7 @@ class crawler:
         # 크롬 드라이버 설정
         options = Options()
         options.add_argument("headless")  # headless 모드
-        options.add_argument(f"--window-size={self.window_size["width"]},{self.window_size["height"]}")
-        # options.add_argument("--start-maximized")
+        options.add_argument("--start-maximized")
 
         # 창을 뜨지 않게 하는 추가 옵션
         options.add_argument("--no-sandbox")
@@ -54,6 +52,7 @@ class crawler:
         service = Service(executable_path=chrome_driver_path)
 
         self.driver = webdriver.Chrome(service=service, options=options)
+        self.window_size = self.driver.get_window_size()
 
     def close(self):
         self.driver.close()
@@ -73,15 +72,9 @@ class crawler:
         # 페이지 새로고침
         self.driver.refresh()
     
-    def set_window_size(self, width=1920, height=1080):
-        self.window_size["width"] = width
-        self.window_size["height"] = height
-        self.driver.set_window_size(width, height)
-
-    def set_window_size_highest(self):
-        scroll_height = self.driver.execute_script("return document.querySelector(\"html\").scrollHeight")
-        self.driver.set_window_size(self.window_size["width"], scroll_height)
-        self.window_size["height"] = scroll_height
+    def maximize_window(self):
+        self.driver.maximize_window()
+        self.window_size = self.driver.get_window_size()
 
     def readHTML(self) -> str:
         return self.driver.page_source
@@ -430,7 +423,7 @@ class crawler:
         capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
         
         png = self.driver.get_screenshot_as_png()
-        self.driver.set_window_size(self.window_size["width"], self.window_size["height"])
+        self.maximize_window()
 
         image = Image.open(io.BytesIO(png))
         if(gray):
