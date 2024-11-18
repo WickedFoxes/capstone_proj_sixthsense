@@ -20,10 +20,12 @@ from PIL import Image
 import cv2
 import numpy as np
 import math
+import io
 
 class crawler:
     def __init__(self):
         self.driver = None
+        self.window_size = {"width":1920, "height":1080}
         self.open()
         
     def open(self):
@@ -37,7 +39,9 @@ class crawler:
         # 크롬 드라이버 설정
         options = Options()
         options.add_argument("headless")  # headless 모드
-        options.add_argument("--start-maximized")
+        options.add_argument(f"--window-size={self.window_size["width"]},{self.window_size["height"]}")
+        # options.add_argument("--start-maximized")
+
         # 창을 뜨지 않게 하는 추가 옵션
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
@@ -53,8 +57,8 @@ class crawler:
 
     def close(self):
         self.driver.close()
-        # if os.path.exists(self.download_path):
-        #     shutil.rmtree(self.download_path)
+        if os.path.exists(self.download_path):
+            shutil.rmtree(self.download_path)
 
     def create_html(self, htmlbody):
         filepath = self.download_path+'\\'+str(uuid.uuid4())+'.html'
@@ -69,6 +73,16 @@ class crawler:
         # 페이지 새로고침
         self.driver.refresh()
     
+    def set_window_size(self, width=1920, height=1080):
+        self.window_size["width"] = width
+        self.window_size["height"] = height
+        self.driver.set_window_size(width, height)
+
+    def set_window_size_highest(self):
+        scroll_height = self.driver.execute_script("return document.querySelector(\"html\").scrollHeight")
+        self.driver.set_window_size(self.window_size["width"], scroll_height)
+        self.window_size["height"] = scroll_height
+
     def readHTML(self) -> str:
         return self.driver.page_source
 
@@ -108,7 +122,6 @@ class crawler:
         
         if opencv_image.size and np.all(np.isfinite(opencv_image)):
             std_dev = np.std(opencv_image)
-            print(std_dev)
             return std_dev < 3
         return True
         
@@ -152,7 +165,6 @@ class crawler:
         while(tab_index < tab_limit):
             self.press_tab()
             tab_item_key = self.get_focus_element_selector()
-            print(tab_item_key)
             
             # 탭 아이템이 끝에 도달한 경우 break
             if(tab_item_key == tab_end_selector): 
@@ -411,6 +423,24 @@ class crawler:
 
         return " > ".join(path)
     
-    def save_screenshot(self):
+    def capture_full_screenshot(self, gray=True):
+        scroll_height = self.driver.execute_script("return document.querySelector(\"html\").scrollHeight")
+        self.driver.set_window_size(self.window_size["width"], scroll_height)
+        
         capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
-        self.driver.save_screenshot(capture_img_path)
+        
+        png = self.driver.get_screenshot_as_png()
+        self.driver.set_window_size(self.window_size["width"], self.window_size["height"])
+
+        image = Image.open(io.BytesIO(png))
+        if(gray):
+            image = image.convert("L")
+
+        # 이미지를 바이트로 다시 변환
+        byte_io = io.BytesIO()  # BytesIO 객체 생성
+        image.save(byte_io, format="PNG")  # PNG 형식으로 저장
+        image_bytes = byte_io.getvalue()  # BytesIO 객체에서 바이트 데이터 추출
+        with open(capture_img_path, "wb") as file:
+            file.write(image_bytes)
+
+        return capture_img_path

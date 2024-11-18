@@ -2,35 +2,129 @@ import Api
 import Crawler
 import HtmlScanner
 import time
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 import traceback
+import ImageDetector
+import ImageProcess
+import os
 
-def run(request_page):
-    print(request_page["url"])
-    # 해당 페이지의 이전 스캔 결과를 초기화
-    Api.delete_page_scanlist(request_page["id"])
-    # 크롤러를 사용하여 HTML 수집
-    # 작은 화면에서 실행
+def image_detection_process(request_page, width=1920, height=1080):
     crawler = Crawler.crawler()
     try:
         if(request_page["pagetype"] == "TEXT"):
+            if(request_page["url"]):
+                scanner = HtmlScanner.html_scanner(request_page["htmlbody"])
+                request_page["htmlbody"] = scanner.get_refresh_css_html(request_page["url"])
             url = crawler.create_html(request_page["htmlbody"])
             crawler.get(url)
         else:
             crawler.get(request_page["url"])
-        window_size_fullscreen = crawler.driver.get_window_size()
-        print(window_size_fullscreen)
-        crawler.driver.set_window_size(window_size_fullscreen["width"]/3, window_size_fullscreen["height"])
         
+        # 브라우저 사이즈 설정
+        window_size = {"width":width, "height":height}
+        crawler.driver.set_window_size(width, height)
+
         # 페이지 읽기 실패하면 Exception raise
         crawler.page_loading_wait()
+
+        # scanner에서 html 읽기
+        html = crawler.readHTML()
+        scanner = HtmlScanner.html_scanner(html)
+        # 전체화면 캡쳐
+        full_screen_img_path = crawler.capture_full_screenshot()
+
+        imageDetector = ImageDetector.image_detector()
+        result = imageDetector.predict(img_path=full_screen_img_path, threshold=0.3)
+
+        pagenation_result = set()
+        tab_result = set()
+        video_result = set()
         
+        for detcet_item in result:
+            if(detcet_item['class_name'] == 'pagenation'):
+                pagenation_result.add(detcet_item['img_path'])
+            if(detcet_item['class_name'] == 'tab'):
+                tab_result.add(detcet_item['img_path'])
+            if(detcet_item['class_name'] == 'video'):
+                video_result.add(detcet_item['img_path'])
+
+        for active_item in result:
+            if(active_item['class_name'] == 'pagenation_active'):
+                checked_result = []
+                for pagenation in pagenation_result:
+                    if(ImageProcess.image_matching_check(pagenation, active_item['img_path'])):
+                        checked_result.append(pagenation)
+                for pagenation in checked_result:
+                    pagenation_result.remove(pagenation)
+
+            if(active_item['class_name'] == 'tab_active'):
+                checked_result = []
+                for tab in tab_result:
+                    if(ImageProcess.image_matching_check(tab, active_item['img_path'])):
+                        checked_result.append(tab)
+                for tab in checked_result:
+                    tab_result.remove(tab)
+
+            if(active_item['class_name'] == 'video_cc'):
+                checked_result = []
+                for video in video_result:
+                    if(ImageProcess.image_matching_check(video, active_item['img_path'])):
+                        checked_result.append(video)
+                for video in checked_result:
+                    video_result.remove(video)
+
+        # 02.자막 제공
+        video_and_caption_check_list = scanner.check_video_and_caption(video_result)
+        print(video_and_caption_check_list)
+        for video_and_caption_check in video_and_caption_check_list:
+            create_item = Api.post_create_item(request_page["id"], video_and_caption_check["item"])
+            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], video_and_caption_check["scan"])
+
+        # 03.색에 무관한 콘텐츠 인식
+        color_dependent_contents_check_list = scanner.check_color_dependent_contents(tab_result, pagenation_result)
+        for color_dependent_contents_check in color_dependent_contents_check_list:
+            create_item = Api.post_create_item(request_page["id"], color_dependent_contents_check["item"])
+            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], color_dependent_contents_check["scan"])
+        
+        # 크롤러 종료
+        crawler.close()
+    except Exception as e:
+        print(traceback.format_exc())
+        # 크롤러 종료
+        crawler.close()
+        return False
+    
+    for image in result:
+        os.remove(image)
+    
+    return True
+
+def tab_action_process(request_page, width=1920, height=1080):
+    crawler = Crawler.crawler()
+    try:
+        if(request_page["pagetype"] == "TEXT"):
+            if(request_page["url"]):
+                scanner = HtmlScanner.html_scanner(request_page["htmlbody"])
+                request_page["htmlbody"] = scanner.get_refresh_css_html(request_page["url"])
+            url = crawler.create_html(request_page["htmlbody"])
+            crawler.get(url)
+        else:
+            crawler.get(request_page["url"])
+        
+        # 브라우저 사이즈 설정
+        window_size = {"width":width, "height":height}
+        crawler.set_window_size(width, height)
+        crawler.set_window_size_highest()
+
+        # 페이지 읽기 실패하면 Exception raise
+        crawler.page_loading_wait()
+
         # 탭으로 끝까지 이동
         finish_check, tab_selector_dict, tab_hidden_dict = crawler.tab_until_finish()
         # scanner에서 html 읽기
         html = crawler.readHTML()
         scanner = HtmlScanner.html_scanner(html)
-        
+
         # 8.키보드 사용 보장
         # 8-1.키보드를 사용한 이동이 보장되어야 한다.
         if(not finish_check):
@@ -38,41 +132,89 @@ def run(request_page):
             tab_loop_error_check_list = scanner.check_tab_loop_item(
                 tab_selector=crawler.get_focus_element_selector(),
                 tab_index=len(tab_selector_dict),
-                window_size = crawler.driver.get_window_size(),
+                window_size = window_size,
                 tab_img_color=tab_img_color, 
                 tab_img_gray=tab_img_gray,
             )
             for tab_loop_error_check in tab_loop_error_check_list:
                 create_item = Api.post_create_item(request_page["id"], tab_loop_error_check["item"])
                 create_scan = Api.post_create_scan(request_page["id"], create_item["id"], tab_loop_error_check["scan"])
-        
+
         # 9.초점 이동
         # 9-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
         tab_hidden_error_check_list = scanner.check_tab_hidden_item(
             tab_hidden_dict = tab_hidden_dict,
-            window_size = crawler.driver.get_window_size(),
+            window_size = window_size,
         )
         for tab_hidden_error_check in tab_hidden_error_check_list:
             create_item = Api.post_create_item(request_page["id"], tab_hidden_error_check["item"])
             create_scan = Api.post_create_scan(request_page["id"], create_item["id"], tab_hidden_error_check["scan"])
         
-        # 크롤러를 사용하여 HTML 수집
-        # 큰 화면에서 실행
-        crawler.refresh()
-        crawler.driver.set_window_size(window_size_fullscreen["width"], window_size_fullscreen["height"])
+        # 09.초점 이동
+        # 09-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
+        tab_hidden_error_check_list = scanner.check_tab_hidden_item(
+            tab_hidden_dict = tab_hidden_dict,
+            window_size = window_size
+        )
+        for tab_hidden_error_check in tab_hidden_error_check_list:
+            create_item = Api.post_create_item(request_page["id"], tab_hidden_error_check["item"])
+            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], tab_hidden_error_check["scan"])
+        
+        # 10.조작 가능
+        control_img_dict = crawler.all_control_capture()
+        control_size_dict =crawler.all_control_size()
+        control_size_check_list = scanner.check_control_size(control_img_dict, control_size_dict, window_size)
+        for control_size_check in control_size_check_list:
+            create_item = Api.post_create_item(request_page["id"], control_size_check["item"])
+            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], control_size_check["scan"])
+        
+        # 14.반복 영역 건너뛰기
+        skip_link_error_check_list = scanner.check_skip_link(
+            tab_selector_dict=tab_selector_dict,
+            tab_hidden_dict=tab_hidden_dict,
+            window_size=window_size
+        )
+        for skip_link_error_check in skip_link_error_check_list:
+            create_item = Api.post_create_item(request_page["id"], skip_link_error_check["item"])
+            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], skip_link_error_check["scan"])
+
+        # 크롤러 종료
+        crawler.close()
+    except Exception as e:
+        print(traceback.format_exc())
+        # 크롤러 종료
+        crawler.close()
+        return False
+    return True
+
+def default_selenium_process(request_page, width=1920, height=1080):
+    crawler = Crawler.crawler()
+    try:
+        if(request_page["pagetype"] == "TEXT"):
+            if(request_page["url"]):
+                scanner = HtmlScanner.html_scanner(request_page["htmlbody"])
+                request_page["htmlbody"] = scanner.get_refresh_css_html(request_page["url"])
+            url = crawler.create_html(request_page["htmlbody"])
+            crawler.get(url)
+        else:
+            crawler.get(request_page["url"])
+        window_size_fullscreen = crawler.driver.get_window_size()
+
+        # 브라우저 사이즈 설정
+        crawler.set_window_size(width, height)
+        crawler.set_window_size_highest()
+
+        # 페이지 읽기 실패하면 Exception raise
         crawler.page_loading_wait()
         
+        # scanner에서 html 읽기
+        html = crawler.readHTML()
+        scanner = HtmlScanner.html_scanner(html)
+
         # 06.자동 재생 금지
         audio_check = crawler.auto_loading_audio_check()
         video_check = crawler.auto_loading_video_check()
-        print(f"audio check : {audio_check}")
-        print(f"video check : {video_check}")
         
-        # scanner에서 html 읽기
-        crawler.refresh()
-        crawler.driver.set_window_size(window_size_fullscreen["width"], window_size_fullscreen["height"])
-        crawler.page_loading_wait()
-        scanner = HtmlScanner.html_scanner(html)
         if(audio_check):
             audio_check_list = scanner.check_auto_audio(audio_check)
             for audio_check in audio_check_list:
@@ -83,60 +225,13 @@ def run(request_page):
             for video_check in video_check_list:
                 create_item = Api.post_create_item(request_page["id"], video_check["item"])
                 create_scan = Api.post_create_scan(request_page["id"], create_item["id"], video_check["scan"])
-        
-        # 탭으로 끝까지 이동
-        finish_check, tab_selector_dict, tab_hidden_dict = crawler.tab_until_finish()
-        # scanner에서 html 읽기
-        html = crawler.readHTML()
-        scanner = HtmlScanner.html_scanner(html)
-        # 08.키보드 사용 보장
-        # 08-1.키보드를 사용한 이동이 보장되어야 한다.
-        if(not finish_check):
-            tab_img_color, tab_img_gray = crawler.capture_focus_element()
-            tab_loop_error_check_list = scanner.check_tab_loop_item(
-                tab_selector=crawler.get_focus_element_selector(),
-                tab_index=len(tab_selector_dict),
-                window_size = crawler.driver.get_window_size(),
-                tab_img_color=tab_img_color, 
-                tab_img_gray=tab_img_gray,
-            )
-            for tab_loop_error_check in tab_loop_error_check_list:
-                create_item = Api.post_create_item(request_page["id"], tab_loop_error_check["item"])
-                create_scan = Api.post_create_scan(request_page["id"], create_item["id"], tab_loop_error_check["scan"])
-        
+
         # 01.적절한 대체 텍스트 제공
         image_dict = crawler.all_img_capture()
         check_image_alt_list = scanner.check_image_alt(image_dict)
         for check_image_alt in check_image_alt_list:
             create_item = Api.post_create_item(request_page["id"], check_image_alt["item"])
             create_scan = Api.post_create_scan(request_page["id"], create_item["id"], check_image_alt["scan"])
-        
-        # 09.초점 이동
-        # 09-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
-        tab_hidden_error_check_list = scanner.check_tab_hidden_item(
-            tab_hidden_dict = tab_hidden_dict,
-            window_size = crawler.driver.get_window_size()
-        )
-        for tab_hidden_error_check in tab_hidden_error_check_list:
-            create_item = Api.post_create_item(request_page["id"], tab_hidden_error_check["item"])
-            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], tab_hidden_error_check["scan"])
-        
-        # 10.조작 가능
-        control_img_dict = crawler.all_control_capture()
-        control_size_dict =crawler.all_control_size()
-        control_size_check_list = scanner.check_control_size(control_img_dict, control_size_dict)
-        for control_size_check in control_size_check_list:
-            create_item = Api.post_create_item(request_page["id"], control_size_check["item"])
-            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], control_size_check["scan"])
-        
-        # 14.반복 영역 건너뛰기
-        skip_link_error_check_list = scanner.check_skip_link(
-            tab_selector_dict=tab_selector_dict,
-            tab_hidden_dict=tab_hidden_dict
-        )
-        for skip_link_error_check in skip_link_error_check_list:
-            create_item = Api.post_create_item(request_page["id"], skip_link_error_check["item"])
-            create_scan = Api.post_create_scan(request_page["id"], create_item["id"], skip_link_error_check["scan"])
         
         # 15.제목 제공
         title_error_check_list = scanner.check_title()
@@ -173,7 +268,7 @@ def run(request_page):
         for check_input_label in check_input_label_list:
             create_item = Api.post_create_item(request_page["id"], check_input_label["item"])
             create_scan = Api.post_create_scan(request_page["id"], create_item["id"], check_input_label["scan"])
-        
+
         # 23.마크업 오류 방지
         markup_error_check_list = scanner.check_w3c_markup()
         for markup_error_check in markup_error_check_list:
@@ -182,16 +277,41 @@ def run(request_page):
         
         # 크롤러 종료
         crawler.close()
-        # 페이지 상태 변경 : RUNNING -> COMPLETE
-        Api.put_complete_status(request_page["id"])
     except Exception as e:
         print(traceback.format_exc())
+        # 크롤러 종료
         crawler.close()
+        return False
+    return True
+
+def run(request_page):
+    print(request_page["url"])
+
+    with ThreadPoolExecutor(max_workers=4) as executor:  # 최대 3개의 스레드 사용
+        futures = [
+            executor.submit(tab_action_process, request_page, 1920, 1080),
+            executor.submit(tab_action_process, request_page, 1920 / 3, 1080),
+            executor.submit(default_selenium_process, request_page),
+            executor.submit(image_detection_process, request_page)
+        ]
+
+        # 모든 작업 완료 대기 및 결과 처리
+        results = []
+        for future in as_completed(futures):
+            result = future.result()  # 결과 가져오기
+            results.append(result)
+    
+    # 페이지 상태 변경 : RUNNING -> COMPLETE
+    if(results[0]
+       and results[1]
+       and results[2]):
+        Api.put_complete_status(request_page["id"])
+    else:
         Api.put_error_status(request_page["id"])
 
 if __name__ == '__main__':
     running_tasks = []
-    max_process_num = 5
+    max_process_num = 3
     
     with ProcessPoolExecutor(max_workers=max_process_num) as executor:
         while True:
@@ -208,7 +328,9 @@ if __name__ == '__main__':
                 if(ready_status_page_list): 
                     request_page = ready_status_page_list[0]
                     run_status_result = Api.put_running_status(request_page["id"])
+                    # 해당 페이지의 이전 스캔 결과를 초기화
+                    Api.delete_page_scanlist(request_page["id"])
 
                     future = executor.submit(run, request_page)
                     running_tasks.append(future)
-            time.sleep(3)
+            time.sleep(2)
