@@ -10,3 +10,5 @@ lxml
 Pillow
 opencv-python
 numpy
+webdriver-manager
+ultralytics

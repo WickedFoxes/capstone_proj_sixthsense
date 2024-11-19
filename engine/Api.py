@@ -9,6 +9,19 @@ def get_ready_status_page():
     ready_page_url = config.READ_READY_PAGE_SERVER_NAME + config.SERVER_KEY
     return get_json_data(ready_page_url)
 
+def put_ready_status(page_id : int):
+    page_status_update_url = config.UPDATE_PAGE_STATUS_SERVER_NAME + config.SERVER_KEY
+    return put_json_data(
+        page_status_update_url,
+        {"id" : page_id, "status": "READY"}
+    )
+
+def put_project_ready_status(project_id : int):
+    project_run_url = config.UPDATE_PROJECT_RUN_SERVER_NAME + str(project_id) + "/" + config.SERVER_KEY
+    return put_json_data(
+        project_run_url, {}
+    )
+
 def put_running_status(page_id : int):
     page_status_update_url = config.UPDATE_PAGE_STATUS_SERVER_NAME + config.SERVER_KEY
     return put_json_data(
@@ -29,7 +42,17 @@ def put_error_status(page_id : int):
         page_status_update_url,
         {"id" : page_id, "status": "ERROR"}
     )
-    
+
+def get_next_schedule():
+    page_status_update_url = config.READ_NEXT_SCHEDULE_SERVER_NAME + config.SERVER_KEY
+    return get_json_data(page_status_update_url)
+
+def put_next_schedule(schedule_id : int):
+    page_status_update_url = config.UPDATE_SCHEDULE_SERVER_NAME + str(schedule_id) + "/" + config.SERVER_KEY
+    return put_json_data(
+        page_status_update_url, {}
+    )
+
 def delete_page_scanlist(page_id : int):
     page_scanlist_delete_url = config.DELETE_SCANLIST_SERVER_NAME + str(page_id) + "/" + config.SERVER_KEY
     print(page_scanlist_delete_url)

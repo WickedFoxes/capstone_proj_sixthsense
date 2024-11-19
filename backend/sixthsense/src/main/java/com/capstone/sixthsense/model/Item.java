@@ -30,7 +30,6 @@ public class Item {
 	private ItemType itemtype;
 	
 	@Column(columnDefinition = "TEXT", name = "body")
-	@NotEmpty
 	private String body;	
 	
 	@Column(name = "tabindex")
