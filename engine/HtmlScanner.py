@@ -1,3 +1,4 @@
+from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from bs4 import Tag
 import Api
@@ -10,6 +11,24 @@ class html_scanner:
         self.html_content = html_content
         self.soup = BeautifulSoup(html_content, 'html.parser')        
     
+    def get_refresh_css_html(self, base_url):
+        parsed_url = urlparse(base_url)
+        domain = f"{parsed_url.scheme}://{parsed_url.netloc}/"
+        
+        # link[type='text/css'][href] 요소 찾기
+        links = self.soup.find_all("link", {"type": "text/css", "href": True})
+
+        # href의 도메인이 비어 있는 경우 수정
+        for link in links:
+            href = link['href']
+            # URL이 절대 경로가 아니라면 도메인 추가
+            if not href.startswith("http://") and not href.startswith("https://"):
+                link['href'] = urljoin(domain, href)  # 도메인을 추가하여 절대 URL로 변환
+
+        # 수정된 HTML 출력
+        return self.soup.prettify()
+
+
     # 01.적절한 대체 텍스트 제공
     # 01-1.<img>, <input type="image">, <area> 의 alt에는 적절한 대체 텍스트를 제공한다.
     def check_image_alt(self, image_dict):
@@ -110,7 +129,57 @@ class html_scanner:
                     )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         return error_message
+
+    # 2. 자막 제공
+    def check_video_and_caption(self, video_image_list):
+        error_message = []
         
+        for video_image in video_image_list:
+            # video가 있으나, video_cc가 없는 것으로 추정되는 경우
+            scanDTO = DTO.ScanDTO(
+                errortype="02.자막 제공",
+                errormessage=textwrap.dedent(
+                    """설명이나 자막이 없이 제공되고 있는 동영상이 있는 것으로 추정됩니다."""
+                )
+            )
+            img_res = Api.post_create_img_item(video_image)
+            itemDTO = DTO.ItemDTO(
+                body="",
+                css_selector="",
+                grayimg=img_res['name'],
+                colorimg=img_res['name']
+            )
+            error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        return error_message
+
+    # 3. 색에 무관한 콘텐츠 인식
+    def check_color_dependent_contents(self, tab_result, pagenation_result):
+        error_message = []
+
+        color_dependent_image_list = []
+        for image in tab_result:
+            color_dependent_image_list.append(image)
+        for image in pagenation_result:
+            color_dependent_image_list.append(image)
+
+        for color_dependent_image in color_dependent_image_list:
+            # 색이 아닌 패턴, 굵기, 모양, 테두리 등의 방법으로 구분되는 요소가 없는 것으로 추정되는 경우
+            scanDTO = DTO.ScanDTO(
+                errortype="03.색에 무관한 콘텐츠 인식",
+                errormessage=textwrap.dedent(
+                    """색이 아닌 패턴, 굵기, 모양, 테두리 등의 방법으로 구분되는 요소가 없는 것으로 추정됩니다."""
+                )
+            )
+            img_res = Api.post_create_img_item(color_dependent_image)
+            itemDTO = DTO.ItemDTO(
+                body="CONTENTS",
+                css_selector="",
+                grayimg=img_res['name'],
+                colorimg=img_res['name']
+            )
+            error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        return error_message
+
     # 6.자동 재생 금지
     # 6-1.페이지 진입 시 재생되고 있는 오디오가 있어서는 안된다.
     # 6-2.페이지 진입 시 재생되고 있는 비디오가 있어서는 안된다.(비디오가 소리 없이 재생 중인 경우에는 허용)
@@ -157,7 +226,6 @@ class html_scanner:
                             tab_img_color, 
                             tab_img_gray):
         error_message = []
-        print(f"check_tab_loop_item : {tab_selector}")
 
         itemDTO = DTO.ItemDTO(
             body=self.soup.select_one(tab_selector).prettify(),
@@ -201,7 +269,7 @@ class html_scanner:
         return error_message
 
     # 10.조작 가능
-    def check_control_size(self, control_img_dict, control_size_dict):
+    def check_control_size(self, control_img_dict, control_size_dict, window_size):
         # 결과 저장용 리스트
         error_message = []
         
@@ -222,7 +290,7 @@ class html_scanner:
             if(css_selector in control_size_dict and control_size_dict[css_selector]['diagonal'] <= MIN_DIAGONAL_MM):
                 diagonal = control_size_dict[css_selector]['diagonal']
                 scanDTO = DTO.ScanDTO(
-                    errortype="10.조작 가능",
+                    errortype=f"10.조작 가능(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                     errormessage=textwrap.dedent(
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
                     )
@@ -249,7 +317,7 @@ class html_scanner:
             if css_selector in control_size_dict and control_size_dict[css_selector]['diagonal'] <= MIN_DIAGONAL_MM:
                 diagonal = control_size_dict[css_selector]['diagonal']
                 scanDTO = DTO.ScanDTO(
-                    errortype="10.조작 가능",
+                    errortype=f"10.조작 가능(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                     errormessage=textwrap.dedent(
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
                     )
@@ -276,7 +344,7 @@ class html_scanner:
             if css_selector in control_size_dict and control_size_dict[css_selector]['diagonal'] <= MIN_DIAGONAL_MM:
                 diagonal = control_size_dict[css_selector]['diagonal']
                 scanDTO = DTO.ScanDTO(
-                    errortype="10.조작 가능",
+                    errortype=f"10.조작 가능(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                     errormessage=textwrap.dedent(
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
                     )
@@ -301,7 +369,10 @@ class html_scanner:
     # 14-1.반복되는 영역이 있는 경우, a태그를 활용한 건너뛰기 링크가 마크업상 최 상단에 위치해야 합니다.
     # 14-2.반복 영역 건너뛰기 기능은 키보드 접근 시 화면에 노출되어야 합니다.
     # 14-3.건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다.
-    def check_skip_link(self, tab_selector_dict, tab_hidden_dict):
+    def check_skip_link(self, 
+                        tab_selector_dict, 
+                        tab_hidden_dict,
+                        window_size):
         error_message = []
         header_tag = self.soup.find('header')
         header_id_tag = self.soup.select('#header')
@@ -315,7 +386,6 @@ class html_scanner:
 
         first_tab_tag = self.soup.select_one(first_tab_select)
         href_attribute = first_tab_tag.get('href')
-        print(href_attribute)
         
         is_a_tag = first_tab_tag.name == "a"
         is_skip_link = href_attribute and href_attribute[0] == "#"
@@ -324,7 +394,7 @@ class html_scanner:
         # 14-1.반복되는 영역이 있는 경우, a태그를 활용한 건너뛰기 링크가 마크업상 최상단에 위치해야 합니다.
         if(not is_a_tag or not is_skip_link):
             scanDTO = DTO.ScanDTO(
-                errortype="14.반복 영역 건너뛰기",
+                errortype=f"14.반복 영역 건너뛰기(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                 errormessage="반복되는 영역이 있는 경우, a태그를 활용한 건너뛰기 링크가 마크업상 최상단에 위치해야 합니다."
             )
             itemDTO = DTO.ItemDTO(
@@ -335,7 +405,7 @@ class html_scanner:
         # 14-2.반복 영역 건너뛰기 기능은 키보드 접근 시 화면에 노출되어야 합니다
         if(is_skip_link and is_first_tab_hidden):
             scanDTO = DTO.ScanDTO(
-                errortype="14.반복 영역 건너뛰기",
+                errortype=f"14.반복 영역 건너뛰기(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                 errormessage="반복 영역 건너뛰기 기능은 키보드 접근 시 화면에 노출되어야 합니다."
             )
             itemDTO = DTO.ItemDTO(
@@ -349,7 +419,7 @@ class html_scanner:
         # 14-3.건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다.
         if(is_skip_link and not self.soup.select_one(href_attribute)):
             scanDTO = DTO.ScanDTO(
-                errortype="14.반복 영역 건너뛰기",
+                errortype=f"14.반복 영역 건너뛰기(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                 errormessage="건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다."
             )
             itemDTO = DTO.ItemDTO(
