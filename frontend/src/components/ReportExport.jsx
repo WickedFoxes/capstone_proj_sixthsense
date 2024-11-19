@@ -51,10 +51,17 @@ function ReportExport() {
                   page.id,
                   scanResponse.data
                 );
+
+                // 중복 제거를 위해 Set 사용
+                const uniqueErrors = new Set(
+                  scanResponse.data.map((result) => result.error)
+                );
+
                 return {
                   title: page.title || "제목 없음",
                   url: page.url || "URL 없음",
                   results: scanResponse.data || [],
+                  errorcount: uniqueErrors.size, // 중복 제거된 에러 개수
                 };
               } catch (error) {
                 console.error(
@@ -66,6 +73,7 @@ function ReportExport() {
                   title: page.title || "제목 없음",
                   url: page.url || "URL 없음",
                   results: [],
+                  errorcount: 0, // 에러가 없으면 0
                 };
               }
             })
@@ -99,6 +107,7 @@ function ReportExport() {
           index: index + 1,
           title: page.title,
           url: page.url,
+          errorcount: page.errorcount, // 에러 개수 추가
           results: page.results.map((result, idx) => ({
             idx: idx + 1,
             error: result.error || "오류 없음",
