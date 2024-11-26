@@ -1,5 +1,7 @@
 package com.capstone.sixthsense.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.capstone.sixthsense.dto.ScheduleDTO;
+import com.capstone.sixthsense.enumeration.ScanStatus;
 import com.capstone.sixthsense.exception.NotExistException;
 import com.capstone.sixthsense.exception.NotHaveAuthException;
 import com.capstone.sixthsense.exception.NotNullException;
@@ -45,19 +48,24 @@ public class ScheduleService {
 		}
 		return schedules;
 	}
-	public Schedule createSchedule(Schedule schedule, Account account) {
-		Project project = schedule.getProject();
+	public Schedule createSchedule(ScheduleDTO scheduleDTO, Project project, Account account) {
 		if(project == null) {
 			throw new NotExistException("No data found.");
 		}
 		if(!project.getAccount().getUsername().equals(account.getUsername())) {
 			throw new NotHaveAuthException("you don't have Auth");
 		}
-		if(schedule.getDayofweek() < 0 
-				|| schedule.getTime().isBlank()) {
+		if(scheduleDTO.getDate().isEmpty()) {
 			throw new NotNullException("It should not be provided as a blank space.");
 		}
-		schedule.calcNexttDateTime();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+		
+		Schedule schedule = new Schedule();
+		schedule.setTitle(scheduleDTO.getTitle());
+		schedule.setDescription(scheduleDTO.getDescription());
+		schedule.setProject(project);
+		schedule.setRunningdate(LocalDateTime.parse(scheduleDTO.getDate(), formatter));
+		schedule.setStatus(ScanStatus.READY);
 		return repo.save(schedule);
 	}
 	public void deleteSchedule(ScheduleDTO scheduleDTO, Account account) {
@@ -81,12 +89,12 @@ public class ScheduleService {
 		}
 		if(!scheduleDTO.getDescription().isBlank()) {
 			schedule.setDescription(scheduleDTO.getDescription());
-		}		
-		
-		schedule.setDayofweek(scheduleDTO.getDayofweek());
-		schedule.setTime(scheduleDTO.getTime());
-		schedule.calcNexttDateTime();
-		
+		}
+		if(!scheduleDTO.getDate().isBlank()) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+			schedule.setRunningdate(LocalDateTime.parse(scheduleDTO.getDate(), formatter));	
+		}
+		schedule.setStatus(ScanStatus.READY);
 		return repo.save(schedule);
 	}
 	
@@ -97,20 +105,19 @@ public class ScheduleService {
 		List<Schedule> schedule_list = repo.findAll();
 		ArrayList<Schedule> schedules = new ArrayList<>();
 		for(Schedule schedule : schedule_list) {
-			if(schedule.isTimeForNextSchedule()) {
+			if(schedule.getStatus().equals(ScanStatus.READY) 
+					&& schedule.isTimeForNextSchedule()) {
 				schedules.add(schedule);
 			}
 		}
 		return schedules;
 	}
-	
-	public Schedule refreshNextScheduleWithKey(String key, long schedule_id) {
+	public Schedule completeScheduleWithKey(String key, long schedule_id) {
 		if(!key.equals(enginekey)) {
 			throw new NotHaveAuthException("you don't have Auth");
 		}
 		Schedule schedule = repo.findById(schedule_id);
-		schedule.updateLastRunningDate();
-		schedule.updateNextRunningDate();
+		schedule.setStatus(ScanStatus.COMPLETE);
 		return repo.save(schedule);
 	}
 	
