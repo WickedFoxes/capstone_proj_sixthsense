@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<title>12.stop func</title>
+	<style>
+        * {
+            box-sizing: border-box;
+        }
+        .slideshow-container {
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+            margin: auto;
+        }
+        .slides {
+            display: none;
+            width: 100%;
+        }
+        .fade {
+            animation: fadeEffect 1.5s;
+        }
+        @keyframes fadeEffect {
+            from {opacity: 0.4}
+            to {opacity: 1}
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <img class="slides fade" src="https://via.placeholder.com/600x300/FF5733/ffffff?text=Image+1" alt="Image 1">
+        <img class="slides fade" src="https://via.placeholder.com/600x300/33FF57/ffffff?text=Image+2" alt="Image 2">
+        <img class="slides fade" src="https://via.placeholder.com/600x300/3357FF/ffffff?text=Image+3" alt="Image 3">
+    </div>
+    <script>
+        let slideIndex = 0;
+        showSlides();
+        function showSlides() {
+            let slides = document.getElementsByClassName("slides");
+            for (let i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+            slideIndex++;
+            if (slideIndex > slides.length) {
+                slideIndex = 1;
+            }
+            slides[slideIndex - 1].style.display = "block";
+            setTimeout(showSlides, 3000); // Change image every 3 seconds
+        }
+    </script>
+</body>
+</html>
