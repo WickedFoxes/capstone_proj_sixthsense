@@ -52,9 +52,6 @@ public class PageService {
 		if(!project.getAccount().getUsername().equals(account.getUsername())) {
 			throw new NotHaveAuthException("you don't have Auth");
 		}
-		if(page.getUrl().isBlank()) {
-    		throw new NotNullException("It should not be provided as a blank space.");
-    	}
 		return repo.save(page);
 	}
 	
