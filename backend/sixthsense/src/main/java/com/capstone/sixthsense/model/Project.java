@@ -53,6 +53,9 @@ public class Project {
 	@OneToMany(mappedBy = "project", cascade=CascadeType.REMOVE)
 	private List<Page> pages;
 	
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE)
+    private List<Schedule> schedules;
+	
 	public Project() {}
 
 	public Account getAccount() {

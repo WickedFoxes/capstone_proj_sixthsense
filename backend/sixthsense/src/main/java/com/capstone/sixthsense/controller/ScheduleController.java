@@ -1,5 +1,7 @@
 package com.capstone.sixthsense.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +67,7 @@ public class ScheduleController {
 	@PostMapping("/schedule/create/by-project/{project}")
 	public ResponseEntity<Object> createSchedule(
 			@PathVariable("project") int project_id,
-			@RequestBody Schedule schedule
+			@RequestBody ScheduleDTO scheduleDTO
 		){
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     	AccountDetails accountDetail = (AccountDetails)authentication.getPrincipal();
@@ -73,8 +75,7 @@ public class ScheduleController {
     	
 		try {
 			Project project = projectService.getProject(project_id, account);
-			schedule.setProject(project);
-			Schedule result = scheduleService.createSchedule(schedule, account);
+			Schedule result = scheduleService.createSchedule(scheduleDTO, project, account);
 			return ResponseEntity.status(HttpStatus.CREATED).body(new ScheduleDTO(result));
 		} catch(Exception e){
 			HashMap<String, String> map = new HashMap<>();
@@ -141,7 +142,7 @@ public class ScheduleController {
 			@PathVariable("enginekey") String enginekey
 		){    	
 		try {
-			Schedule schedule = scheduleService.refreshNextScheduleWithKey(enginekey, schedule_id);
+			Schedule schedule = scheduleService.completeScheduleWithKey(enginekey, schedule_id);
 			return ResponseEntity.status(HttpStatus.CREATED).body(new ScheduleDTO(schedule));
 			
 		} catch(Exception e){

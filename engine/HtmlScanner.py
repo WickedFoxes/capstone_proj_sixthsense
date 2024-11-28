@@ -31,7 +31,9 @@ class html_scanner:
 
     # 01.적절한 대체 텍스트 제공
     # 01-1.<img>, <input type="image">, <area> 의 alt에는 적절한 대체 텍스트를 제공한다.
-    def check_image_alt(self, image_dict):
+    def check_image_alt(self, 
+                        request_id,
+                        image_dict):
         # 결과 저장용 리스트
         error_message = []
         # 검사 대상 입력 필드
@@ -128,12 +130,17 @@ class html_scanner:
                         grayimg=gray_img_res['name']
                     )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
 
     # 2. 자막 제공
-    def check_video_and_caption(self, video_image_list):
+    def check_video_and_caption(self, 
+                                request_id, 
+                                video_image_list):
         error_message = []
-        
         for video_image in video_image_list:
             # video가 있으나, video_cc가 없는 것으로 추정되는 경우
             scanDTO = DTO.ScanDTO(
@@ -150,10 +157,17 @@ class html_scanner:
                 colorimg=img_res['name']
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
 
     # 3. 색에 무관한 콘텐츠 인식
-    def check_color_dependent_contents(self, tab_result, pagenation_result):
+    def check_color_dependent_contents(self, 
+                                       request_id, 
+                                       tab_result, 
+                                       pagenation_result):
         error_message = []
 
         color_dependent_image_list = []
@@ -172,18 +186,52 @@ class html_scanner:
             )
             img_res = Api.post_create_img_item(color_dependent_image)
             itemDTO = DTO.ItemDTO(
-                body="CONTENTS",
+                body="",
                 css_selector="",
                 grayimg=img_res['name'],
                 colorimg=img_res['name']
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
+
+    # 5.텍스트 콘텐츠의 명도 대비
+    # 텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 한다.
+    def check_text_image_contrast(self,
+                                  request_id,
+                                  text_image_error_dict):
+        error_message = []
+        for text_image, ratio in text_image_error_dict.items():
+            scanDTO = DTO.ScanDTO(
+                errortype="05.텍스트 콘텐츠의 명도 대비",
+                errormessage=textwrap.dedent(
+                    f"""텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 합니다.(현재 {round(ratio,2)})"""
+                )
+            )
+            img_res = Api.post_create_img_item(text_image)
+            itemDTO = DTO.ItemDTO(
+                body="",
+                css_selector="",
+                grayimg=img_res['name'],
+                colorimg=img_res['name']
+            )
+            error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
+        return error_message        
+
 
     # 6.자동 재생 금지
     # 6-1.페이지 진입 시 재생되고 있는 오디오가 있어서는 안된다.
     # 6-2.페이지 진입 시 재생되고 있는 비디오가 있어서는 안된다.(비디오가 소리 없이 재생 중인 경우에는 허용)
-    def check_auto_audio(self, selector:str):
+    def check_auto_audio(self, 
+                         request_id,
+                         selector:str):
         error_message = []
         audio_tag = self.soup.select_one(selector)
         # 규칙 1: caption이 있지만 th가 없는 경우
@@ -199,8 +247,13 @@ class html_scanner:
             css_selector=selector
         )
         error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
-    def check_auto_video(self, selector:str):
+    def check_auto_video(self, 
+                         request_id,
+                         selector:str):
         error_message = []
         video_tag = self.soup.select_one(selector)
         # 규칙 1: caption이 있지만 th가 없는 경우
@@ -215,11 +268,15 @@ class html_scanner:
             css_selector=selector
         )
         error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 8.키보드 사용 보장
     # 8-1.키보드를 사용한 이동이 보장되어야 한다.
     def check_tab_loop_item(self, 
+                            request_id,
                             tab_selector, 
                             tab_index, 
                             window_size,
@@ -247,11 +304,15 @@ class html_scanner:
             errormessage="키보드를 사용한 초점 이동이 보장되어야 한다."
         )
         error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 9.초점 이동
     # 9-1.키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.
     def check_tab_hidden_item(self, 
+                              request_id,
                               tab_hidden_dict,
                               window_size):
         error_message = []
@@ -266,10 +327,17 @@ class html_scanner:
                 errormessage="키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다."
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
 
     # 10.조작 가능
-    def check_control_size(self, control_img_dict, control_size_dict, window_size):
+    def check_control_size(self, 
+                           request_id,
+                           control_img_dict, 
+                           control_size_dict, 
+                           window_size):
         # 결과 저장용 리스트
         error_message = []
         
@@ -363,13 +431,45 @@ class html_scanner:
                         grayimg=gray_img_res['name']
                     )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
+    # 12.정지 기능 제공
+    # 자동으로 변경되는 콘텐츠 추적
+    def check_auto_changed_contents(self,
+                                    request_id,
+                                    auto_changed_image_list):
+        error_message = []
+        for auto_changed_image in auto_changed_image_list:
+            scanDTO = DTO.ScanDTO(
+                errortype="12.정지 기능 제공",
+                errormessage=textwrap.dedent(
+                    """자동으로 변경되는 콘텐츠를 확인하였습니다. 이전, 다음, 정지 기능을 제공하는지 확인하시오."""
+                )
+            )
+            img_res = Api.post_create_img_item(auto_changed_image)
+            itemDTO = DTO.ItemDTO(
+                body="",
+                css_selector="",
+                grayimg=img_res['name'],
+                colorimg=img_res['name']
+            )
+            error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
+        return error_message
+        
+
+
     # 14.반복 영역 건너뛰기
     # 14-1.반복되는 영역이 있는 경우, a태그를 활용한 건너뛰기 링크가 마크업상 최 상단에 위치해야 합니다.
     # 14-2.반복 영역 건너뛰기 기능은 키보드 접근 시 화면에 노출되어야 합니다.
     # 14-3.건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다.
     def check_skip_link(self, 
+                        request_id,
                         tab_selector_dict, 
                         tab_hidden_dict,
                         window_size):
@@ -414,8 +514,6 @@ class html_scanner:
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         
-        
-        
         # 14-3.건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다.
         if(is_skip_link and not self.soup.select_one(href_attribute)):
             scanDTO = DTO.ScanDTO(
@@ -427,10 +525,14 @@ class html_scanner:
                 css_selector=first_tab_select
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 15.제목 제공
-    def check_title(self):
+    def check_title(self,
+                    request_id):
         error_message = []
         
         html_tag = self.soup.find('html')
@@ -470,10 +572,14 @@ class html_scanner:
                     css_selector = self.get_css_path(iframe)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 16.적절한 링크 텍스트
-    def check_link_text(self):
+    def check_link_text(self,
+                        request_id):
         error_message = []
         a_list = self.soup.find_all('a')
         for i, a_tag in enumerate(a_list):
@@ -488,10 +594,14 @@ class html_scanner:
                     css_selector = self.get_css_path(a_tag)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 17.기본 언어 표시
-    def check_html_lang(self):
+    def check_html_lang(self,
+                        request_id):
         error_message = []
         tag_name = 'html'
         html_tag = self.soup.find(tag_name)
@@ -505,11 +615,15 @@ class html_scanner:
                 css_selector="html"
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 18.사용자 요구에 따른 실행
     # 18-1.새 창이라는 것을 알 수 있도록 제공해야 한다.
-    def check_new_window_onclick(self):
+    def check_new_window_onclick(self, 
+                                 request_id):
         error_message = []
         a_list = self.soup.find_all('a')
         for i, a_tag in enumerate(a_list):
@@ -536,11 +650,15 @@ class html_scanner:
                     css_selector = self.get_css_path(a_tag)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 20.표의 구성
     # 20-1.표에 <caption>, summary 등을 사용하여 적절한 제목과 요약 정보를 제공한다.
-    def check_table_head(self):
+    def check_table_head(self, 
+                         request_id):
         error_message = []
         tables = self.soup.find_all('table')
 
@@ -583,10 +701,14 @@ class html_scanner:
                     css_selector = self.get_css_path(table)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 21.레이블 제공
-    def check_input_label(self):
+    def check_input_label(self, 
+                          request_id):
         # 결과 저장용 리스트
         error_message = []
         
@@ -653,10 +775,14 @@ class html_scanner:
                     css_selector = self.get_css_path(field)
                 )
                 error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
     # 23.마크업 오류 방지
-    def check_w3c_markup(self):
+    def check_w3c_markup(self, 
+                         request_id):
         # W3C Markup Validator API에 요청 보내기
         response = requests.post(
             "https://validator.w3.org/nu/?out=json",
@@ -701,6 +827,9 @@ class html_scanner:
                                 css_selector=f"From line {msg['lastLine']+1}, column {msg['firstColumn']}; to line {msg['lastLine']+1}, column {msg['lastColumn']}"
                             )
                             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+            for error_item in error_message:
+                create_item = Api.post_create_item(request_id, error_item["item"])
+                create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
             return error_message
         return None
     
@@ -723,9 +852,9 @@ class html_scanner:
 
         return " > ".join(path)
     
-def extract_tag_head(name : str ,tag : Tag):
-    taghead = f"<{name}"
-    for attr, value in tag.attrs.items():
-        taghead += (f' {attr}="{value}"')
-    taghead += ">"
-    return taghead
+    def extract_tag_head(self, name : str ,tag : Tag):
+        taghead = f"<{name}"
+        for attr, value in tag.attrs.items():
+            taghead += (f' {attr}="{value}"')
+        taghead += ">"
+        return taghead

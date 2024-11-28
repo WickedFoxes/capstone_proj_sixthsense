@@ -21,6 +21,7 @@ import cv2
 import numpy as np
 import math
 import io
+import ImageProcess
 
 class crawler:
     def __init__(self):
@@ -420,14 +421,10 @@ class crawler:
 
         return " > ".join(path)
     
-    def capture_full_screenshot(self, gray=True):
-        scroll_height = self.driver.execute_script("return document.querySelector(\"html\").scrollHeight")
-        self.driver.set_window_size(self.window_size["width"], scroll_height)
-        
+    def capture_screenshot(self, gray=True):
         capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
         
         png = self.driver.get_screenshot_as_png()
-        self.maximize_window()
 
         image = Image.open(io.BytesIO(png))
         if(gray):
@@ -441,3 +438,40 @@ class crawler:
             file.write(image_bytes)
 
         return capture_img_path
+    
+    def update_height_max(self):
+        scroll_height = self.driver.execute_script("return document.querySelector(\"html\").scrollHeight")
+        self.driver.set_window_size(self.window_size["width"], scroll_height)
+        time.sleep(2)
+
+    def get_changed_img_list(self):
+        full_screen_1 = self.capture_screenshot()
+        time.sleep(5)
+        full_screen_2 = self.capture_screenshot()
+
+        saved_regions = ImageProcess.find_and_save_differences_with_connected_regions(
+            full_screen_1, full_screen_2, config.DOWNLOAD_TEMP_PATH
+        )
+        return saved_regions
+    
+    def get_text_img_list(self):
+        leaf_elements = self.driver.find_elements(By.XPATH, "//*[not(*)]")
+        text_image_list = []
+        for leaf in leaf_elements:
+            background_image = leaf.value_of_css_property("background-image")
+            if(leaf.text.strip() 
+            and not (background_image and "url(" in background_image)):
+                color_img_path, gray_img_path = self.capture_element(leaf)
+                if(gray_img_path and ImageProcess.is_text_image(gray_img_path)):
+                    text_image_list.append(color_img_path)
+        return text_image_list
+    
+    def get_contrast_error_text_img_dict(self):
+        text_image_list = self.get_text_img_list()
+        error_image = {}
+        
+        for text_image in text_image_list:
+            ratio = ImageProcess.check_text_contrast(text_image)
+            if(ratio < 4.5):
+                error_image[text_image] = ratio
+        return error_image

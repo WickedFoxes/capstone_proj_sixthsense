@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03.color_dependent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            display: flex;
+        }
+        .nav {
+            width: 20%;
+            background-color: #333;
+            color: #fff;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .nav h2 {
+            font-size: 18px;
+            color: #f1f1f1;
+            margin-bottom: 10px;
+        }
+        .nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .nav li {
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .nav li a {
+            text-decoration: none;
+            color: #f1f1f1;
+            font-size: 16px;
+        }
+        .nav li a:hover {
+            text-decoration: underline;
+        }
+        .nav ul ul {
+            margin-left: 15px;
+        }
+        .main-content {
+            width: 80%;
+            padding: 20px;
+            box-sizing: border-box;
+            background: #fff;
+            height: 100vh;
+            overflow: auto;
+        }
+        .header {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            margin: 0 5px;
+            padding: 10px 15px;
+            text-decoration: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+        }
+        .pagination a:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <!-- 왼쪽 네비게이션 -->
+    <div class="nav">
+        <h2>메뉴</h2>
+        <ul>
+            <li><a href="#">로그인</a></li>
+            <li><a href="#">게시글</a>
+                <ul>
+                    <li><a href="#">공지사항</a></li>
+                    <li><a href="#">자유게시글</a></li>
+                    <li><a href="#">칭찬합니다</a></li>
+                </ul>
+            </li>
+            <li><a href="#">정보찾기</a>
+                <ul>
+                    <li><a href="#">지도</a></li>
+                    <li><a href="#">길찾기</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 중앙 게시판 내용 -->
+    <div class="main-content">
+        <div class="header">게시판</div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>제목</th>
+                    <th>생성일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>첫 번째 게시글</td>
+                    <td>2024-11-27</td>
+                </tr>
+                <tr>
+                    <td>두 번째 게시글</td>
+                    <td>2024-11-26</td>
+                </tr>
+                <tr>
+                    <td>세 번째 게시글</td>
+                    <td>2024-11-25</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination">
+            <a href="#">1</a>
+            <a href="#">2</a>
+            <a href="#">3</a>
+            <a href="#">다음</a>
+        </div>
+    </div>
+</body>
+</html>

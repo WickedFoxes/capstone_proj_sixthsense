@@ -51,10 +51,27 @@ function ReportExport() {
                   page.id,
                   scanResponse.data
                 );
+
+                // 에러 메시지별로 그룹화
+                const groupedErrors = scanResponse.data.reduce(
+                  (acc, result) => {
+                    if (!acc[result.error]) {
+                      acc[result.error] = [];
+                    }
+                    acc[result.error].push(result);
+                    return acc;
+                  },
+                  {}
+                );
+
+                // 고유한 에러 메시지의 수
+                const uniqueErrorCount = Object.keys(groupedErrors).length;
+
                 return {
                   title: page.title || "제목 없음",
                   url: page.url || "URL 없음",
                   results: scanResponse.data || [],
+                  errorcount: uniqueErrorCount, // 고유 에러 개수
                 };
               } catch (error) {
                 console.error(
@@ -66,6 +83,7 @@ function ReportExport() {
                   title: page.title || "제목 없음",
                   url: page.url || "URL 없음",
                   results: [],
+                  errorcount: 0, // 에러가 없으면 0
                 };
               }
             })
@@ -99,6 +117,7 @@ function ReportExport() {
           index: index + 1,
           title: page.title,
           url: page.url,
+          errorcount: page.errorcount, // 에러 개수 추가
           results: page.results.map((result, idx) => ({
             idx: idx + 1,
             error: result.error || "오류 없음",
