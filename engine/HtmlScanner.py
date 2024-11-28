@@ -15,15 +15,21 @@ class html_scanner:
         parsed_url = urlparse(base_url)
         domain = f"{parsed_url.scheme}://{parsed_url.netloc}/"
         
-        # link[type='text/css'][href] 요소 찾기
-        links = self.soup.find_all("link", {"type": "text/css", "href": True})
+        # src, href를 가진 요소 찾기
+        links = self.soup.select('[src], [href]')
 
         # href의 도메인이 비어 있는 경우 수정
         for link in links:
-            href = link['href']
-            # URL이 절대 경로가 아니라면 도메인 추가
-            if not href.startswith("http://") and not href.startswith("https://"):
-                link['href'] = urljoin(domain, href)  # 도메인을 추가하여 절대 URL로 변환
+            if link.has_attr('href'):
+                href = link['href']
+                # URL이 절대 경로가 아니라면 도메인 추가
+                if href.startswith("/"):
+                    link['href'] = urljoin(domain, href)  # 도메인을 추가하여 절대 URL로 변환
+            if link.has_attr('src'):
+                src = link['src']
+                # URL이 절대 경로가 아니라면 도메인 추가
+                if src.startswith("/"):
+                    link['src'] = urljoin(domain, src)  # 도메인을 추가하여 절대 URL로 변환
 
         # 수정된 HTML 출력
         return self.soup.prettify()
