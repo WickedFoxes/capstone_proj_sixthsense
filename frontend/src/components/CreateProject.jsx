@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Form, Modal, Row, Col } from "react-bootstrap";
+import { Button, Form, Modal, ListGroup } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
+import PageAddModal from "./PageAddModal";
 import { API } from "../config";
 
 axios.defaults.withCredentials = true;
@@ -10,38 +11,17 @@ axios.defaults.withCredentials = true;
 function CreateProject({ show, onHide, onSave }) {
   const [projectTitle, setProjectTitle] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
-  const [pageList, setPageList] = useState([{ url: "", isSaved: false }]);
-  const [isUrlEmpty, setIsUrlEmpty] = useState(true);
-  const [isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
+  const [pageList, setPageList] = useState([]);
+  const [showPageAddModal, setShowPageAddModal] = useState(false); // 페이지 추가 모달 상태
 
-  const handleAddUrl = () => {
-    const updatedPageList = pageList.map((page) => ({
-      ...page,
-      isSaved: true,
-    }));
-    setPageList([...updatedPageList, { url: "", isSaved: false }]);
+  const handleAddPage = (newPage) => {
+    setPageList([...pageList, newPage]); // 새 페이지 추가
   };
 
-  const handleRemoveUrl = (index) => {
+  const handleRemovePage = (index) => {
     const updatedPageList = pageList.filter((_, idx) => idx !== index);
     setPageList(updatedPageList);
   };
-
-  const handleUrlChange = (index, value) => {
-    const updatedPageList = [...pageList];
-    updatedPageList[index].url = value;
-    setPageList(updatedPageList);
-  };
-
-  // 마지막 URL 필드가 비어있는지 확인하여 URL 추가 버튼 상태 업데이트
-  useEffect(() => {
-    const lastPage = pageList[pageList.length - 1];
-    setIsUrlEmpty(lastPage.url.trim() === "");
-
-    // 모든 URL 필드가 비어있는지 확인하여 저장 버튼 비활성화
-    const allUrlsEmpty = pageList.every((page) => page.url.trim() === "");
-    setIsSaveButtonDisabled(allUrlsEmpty);
-  }, [pageList]);
 
   const handleSave = async () => {
     try {
@@ -50,7 +30,12 @@ function CreateProject({ show, onHide, onSave }) {
           title: projectTitle,
           description: projectDescription,
         },
-        pageList: pageList.map((page) => ({ title: "", url: page.url })),
+        pageList: pageList.map((page) => ({
+          title: page.title,
+          pagetype: page.pagetype,
+          url: page.pagetype === "URL" ? page.url : undefined,
+          htmlbody: page.pagetype === "TEXT" ? page.htmlbody : undefined,
+        })),
       };
 
       const response = await axios.post(
@@ -61,8 +46,7 @@ function CreateProject({ show, onHide, onSave }) {
         console.log("프로젝트가 성공적으로 생성되었습니다.");
         setProjectTitle("");
         setProjectDescription("");
-        setPageList([{ url: "", isSaved: false }]);
-
+        setPageList([]);
         onSave(); // Menubar 컴포넌트에서 목록 새로고침 및 모달 닫기
       }
     } catch (error) {
@@ -71,89 +55,81 @@ function CreateProject({ show, onHide, onSave }) {
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
-      <Modal.Header closeButton>
-        <Modal.Title>검사 페이지 생성</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3" controlId="formProjectTitle">
-            <Form.Label>사이트 이름</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="사이트 이름을 입력하세요."
-              value={projectTitle}
-              onChange={(e) => setProjectTitle(e.target.value)}
-              autoFocus
-            />
-          </Form.Group>
+    <>
+      <Modal show={show} onHide={onHide}>
+        <Modal.Header closeButton>
+          <Modal.Title>검사 페이지 생성</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3" controlId="formProjectTitle">
+              <Form.Label>사이트 이름</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="사이트 이름을 입력하세요."
+                value={projectTitle}
+                onChange={(e) => setProjectTitle(e.target.value)}
+                autoFocus
+              />
+            </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formProjectDescription">
-            <Form.Label>사이트 설명</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="사이트 설명을 입력하세요."
-              value={projectDescription}
-              onChange={(e) => setProjectDescription(e.target.value)}
-            />
-          </Form.Group>
+            <Form.Group className="mb-3" controlId="formProjectDescription">
+              <Form.Label>사이트 설명</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                placeholder="사이트 설명을 입력하세요."
+                value={projectDescription}
+                onChange={(e) => setProjectDescription(e.target.value)}
+              />
+            </Form.Group>
 
-          {pageList.map((page, index) => (
-            <div key={index} className="mb-3">
-              <Row>
-                <Col sm="10">
-                  <Form.Control
-                    type="text"
-                    placeholder={`검사 페이지 URL (${index + 1})`}
-                    value={page.url}
-                    onChange={(e) => handleUrlChange(index, e.target.value)}
-                    className="mb-2"
-                  />
-                </Col>
-                <Col sm="2">
-                  {page.isSaved && (
-                    <Button
-                      variant="danger"
-                      onClick={() => handleRemoveUrl(index)}
-                      className="mb-2"
-                    >
-                      삭제
-                    </Button>
-                  )}
-                </Col>
-              </Row>
-            </div>
-          ))}
-
+            <ListGroup>
+              {pageList.map((page, index) => (
+                <ListGroup.Item
+                  key={index}
+                  className="d-flex justify-content-between align-items-center"
+                >
+                  <div>
+                    <strong>{page.title || "제목 없음"}</strong> -{" "}
+                    {page.pagetype === "URL" ? page.url : "HTML"}
+                  </div>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleRemovePage(index)}
+                    style={{
+                      flexShrink: 0,
+                      width: "60px",
+                      textAlign: "center",
+                    }}
+                  >
+                    삭제
+                  </Button>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
           <Button
-            variant="outline-primary"
-            onClick={handleAddUrl}
-            className="mb-3"
-            disabled={isUrlEmpty}
+            variant="success"
+            onClick={() => setShowPageAddModal(true)} // 페이지 추가 모달 열기
           >
-            + URL 추가
+            + 검사 페이지 추가
           </Button>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="outline-primary" onClick={onHide}>
-          닫기
-        </Button>
-        <Button
-          variant="primary"
-          onClick={handleSave}
-          disabled={isSaveButtonDisabled}
-          style={{
-            backgroundColor: isSaveButtonDisabled ? "#e6e6e6" : "#007bff",
-            borderColor: isSaveButtonDisabled ? "#e6e6e6" : "#007bff",
-            color: isSaveButtonDisabled ? "#a0a0a0" : "white",
-          }}
-        >
-          저장
-        </Button>
-      </Modal.Footer>
-    </Modal>
+          <Button variant="primary" onClick={handleSave}>
+            저장
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <PageAddModal
+        show={showPageAddModal}
+        onHide={() => setShowPageAddModal(false)}
+        onSave={handleAddPage}
+      />
+    </>
   );
 }
 

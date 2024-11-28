@@ -118,6 +118,7 @@ function ReportExport() {
           title: page.title,
           url: page.url,
           errorcount: page.errorcount, // 에러 개수 추가
+          pageBreak: '<w:p><w:r><w:br w:type="page"/></w:r></w:p>', // 페이지 넘기기
           results: page.results.map((result, idx) => ({
             idx: idx + 1,
             error: result.error || "오류 없음",

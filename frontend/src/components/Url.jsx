@@ -90,8 +90,43 @@ function Url() {
               style={{ padding: "20px" }}
             >
               <div className="ms-2 text-start d-flex align-items-center">
-                <div className="fw-bold">{index + 1}.</div>
-                <div className="ms-2">{page.url}</div>
+                {/* 번호 표시 */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "5%",
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    fontWeight: "bold",
+                    marginRight: "10px",
+                  }}
+                >
+                  {index + 1}
+                </div>
+
+                {/* 제목과 URL 표시 */}
+                <div className="ms-2 d-flex flex-column">
+                  <div className="fw-bold">{page.title || "제목 없음"}</div>
+                  <a
+                    href={page.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      textDecoration: "underline",
+                      color: "blue",
+                      fontSize: "0.9rem",
+                      marginTop: "5px",
+                    }}
+                  >
+                    {page.url}
+                  </a>
+                </div>
+
+                {/* 상태 표시 */}
                 {(page.status === "READY" || page.status === "RUNNING") && (
                   <Spinner
                     animation="border"
@@ -104,6 +139,7 @@ function Url() {
               </div>
 
               <div className="d-flex align-items-center">
+                {/* 검사 버튼 */}
                 <Button
                   variant={
                     page.status === "COMPLETE" ? "outline-success" : "secondary"
@@ -118,6 +154,7 @@ function Url() {
                   검사
                 </Button>
 
+                {/* 보기 버튼 */}
                 <Button
                   variant={
                     page.status === "COMPLETE" ? "outline-danger" : "secondary"
@@ -134,6 +171,7 @@ function Url() {
                   보기
                 </Button>
 
+                {/* 편집 드롭다운 */}
                 <Dropdown>
                   <Dropdown.Toggle
                     variant="outline-secondary"
