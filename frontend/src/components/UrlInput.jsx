@@ -15,6 +15,7 @@ function UrlInput() {
   const [url, setUrl] = useState(""); // URL 상태
   const [htmlBody, setHtmlBody] = useState(""); // HTML 상태
   const [pageType, setPageType] = useState("URL"); // 드롭다운 선택 값 (URL/TEXT)
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true); // 등록 버튼 비활성화 상태
 
   // 전체 프로젝트 목록 가져오기
   useEffect(() => {
@@ -35,7 +36,6 @@ function UrlInput() {
   // projectId가 변경될 때마다 해당 프로젝트 타이틀 설정
   useEffect(() => {
     if (projects.length > 0 && projectId) {
-      // projectId와 일치하는 프로젝트를 찾음
       const selectedProject = projects.find(
         (project) => project.id.toString() === projectId
       );
@@ -44,6 +44,19 @@ function UrlInput() {
       }
     }
   }, [projects, projectId]);
+
+  // 등록 버튼 활성화 상태 업데이트
+  useEffect(() => {
+    if (
+      title.trim() === "" || // 제목이 비어 있으면 비활성화
+      (pageType === "URL" && url.trim() === "") || // URL 타입에서 URL이 비어 있으면 비활성화
+      (pageType === "TEXT" && (url.trim() === "" || htmlBody.trim() === "")) // HTML 타입에서 URL 또는 HTML이 비어 있으면 비활성화
+    ) {
+      setIsButtonDisabled(true);
+    } else {
+      setIsButtonDisabled(false);
+    }
+  }, [title, url, htmlBody, pageType]);
 
   // 등록 버튼 클릭 시 페이지 생성 요청
   const handleSubmit = async (event) => {
@@ -59,13 +72,13 @@ function UrlInput() {
     } else if (pageType === "TEXT") {
       requestData.htmlbody = htmlBody;
       if (url.trim() !== "") {
-        requestData.url = url; // HTML 선택 시 URL이 입력되었을 경우 추가
+        requestData.url = url;
       }
     }
 
     try {
       const response = await axios.post(
-        `${API.PAGECREATE}${projectId}`, // 프로젝트 ID를 동적으로 추가하여 URL 생성
+        `${API.PAGECREATE}${projectId}`,
         requestData
       );
 
@@ -151,7 +164,7 @@ function UrlInput() {
           </Col>
         </Form.Group>
 
-        {/* URL 입력 (항상 표시) */}
+        {/* URL 입력 */}
         <Form.Group as={Row} className="mb-4" controlId="formBasicUrl">
           <Form.Label
             column
@@ -166,13 +179,13 @@ function UrlInput() {
               placeholder="Ex) https://www.cau.ac.kr/index.do"
               style={{ height: "45px" }}
               value={url}
-              onChange={(e) => setUrl(e.target.value)} // 입력 값 상태 업데이트
-              required={pageType === "URL"} // URL 선택 시 필수
+              onChange={(e) => setUrl(e.target.value)}
+              required={pageType === "URL"}
             />
           </Col>
         </Form.Group>
 
-        {/* HTML 입력 (TEXT 선택 시 표시) */}
+        {/* HTML 입력 */}
         {pageType === "TEXT" && (
           <Form.Group as={Row} className="mb-4" controlId="formHtmlBody">
             <Form.Label
@@ -188,7 +201,7 @@ function UrlInput() {
                 rows={5}
                 placeholder="HTML 코드를 입력하세요."
                 value={htmlBody}
-                onChange={(e) => setHtmlBody(e.target.value)} // HTML 입력 값 상태 업데이트
+                onChange={(e) => setHtmlBody(e.target.value)}
               />
             </Col>
           </Form.Group>
@@ -196,7 +209,7 @@ function UrlInput() {
 
         <Row className="text-center">
           <Col>
-            <Button variant="primary" type="submit">
+            <Button variant="primary" type="submit" disabled={isButtonDisabled}>
               등록
             </Button>
           </Col>
@@ -207,12 +220,10 @@ function UrlInput() {
         className="mt-4 d-flex justify-content-between"
         style={{ width: "70%" }}
       >
-        {/* 보고서 생성 버튼 */}
         <div style={{ display: "flex", justifyContent: "flex-start" }}>
           <ReportExport />
         </div>
 
-        {/* 페이지 전체 검사 버튼 */}
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <Button
             variant="success"

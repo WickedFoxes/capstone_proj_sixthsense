@@ -69,7 +69,7 @@ function ReportExport() {
 
                 return {
                   title: page.title || "제목 없음",
-                  url: page.url || "URL 없음",
+                  url: page.url || "url 없음",
                   results: scanResponse.data || [],
                   errorcount: uniqueErrorCount, // 고유 에러 개수
                 };
@@ -81,7 +81,7 @@ function ReportExport() {
                 );
                 return {
                   title: page.title || "제목 없음",
-                  url: page.url || "URL 없음",
+                  url: page.url || "url 없음",
                   results: [],
                   errorcount: 0, // 에러가 없으면 0
                 };
