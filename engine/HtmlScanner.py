@@ -67,7 +67,7 @@ class html_scanner:
                     body=field.prettify(),
                     css_selector=css_selector,
                 )
-                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                if(css_selector in image_dict and image_dict[css_selector]['color_img_path']):
                     color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
                     gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
                     itemDTO = DTO.ItemDTO(
@@ -97,7 +97,7 @@ class html_scanner:
                     body=field.prettify(),
                     css_selector=css_selector,
                 )
-                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                if(css_selector in image_dict and image_dict[css_selector]['color_img_path']):
                     color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
                     gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
                     itemDTO = DTO.ItemDTO(
@@ -126,7 +126,7 @@ class html_scanner:
                     body=field.prettify(),
                     css_selector=css_selector,
                 )
-                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                if(css_selector in image_dict and image_dict[css_selector]['color_img_path']):
                     color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
                     gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
                     itemDTO = DTO.ItemDTO(
@@ -204,25 +204,62 @@ class html_scanner:
             create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
 
+
+    # 4. 명확한 지시 사항 제공
+    # 모양으로만 정보를 제공해서는 안된다.
+    def check_required_id_and_info(self,
+                                  request_id,
+                                  id_and_info_dict):
+        error_message = []
+
+        if not id_and_info_dict["check"]:
+            scanDTO = DTO.ScanDTO(
+                errortype="04.명확한 지시 사항 제공",
+                errormessage=textwrap.dedent(
+                    f"""\
+                    '*' 모양으로만 정보를 제공해서는 안됩니다. 
+                    '* 표시는 필수 입력 사항입니다.'와 같은 문구를 제공하시요.\
+                    """
+                )
+            )
+            color_img_res = Api.post_create_img_item(id_and_info_dict["color_img_path"])
+            gray_img_res = Api.post_create_img_item(id_and_info_dict["gray_img_path"])
+            body_element = self.soup.select_one(id_and_info_dict["css_path"])
+
+            itemDTO = DTO.ItemDTO(
+                body=body_element.prettify(),
+                css_selector=id_and_info_dict["css_path"],
+                grayimg=gray_img_res['name'],
+                colorimg=color_img_res['name']
+            )
+            error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
+        return error_message   
+
+
     # 5.텍스트 콘텐츠의 명도 대비
     # 텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 한다.
     def check_text_image_contrast(self,
                                   request_id,
                                   text_image_error_dict):
         error_message = []
-        for text_image, ratio in text_image_error_dict.items():
+        for css_path, item_dict in text_image_error_dict.items():
             scanDTO = DTO.ScanDTO(
                 errortype="05.텍스트 콘텐츠의 명도 대비",
                 errormessage=textwrap.dedent(
-                    f"""텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 합니다.(현재 {round(ratio,2)})"""
+                    f"""텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 합니다.(현재 {round(item_dict["ratio"],2)})"""
                 )
             )
-            img_res = Api.post_create_img_item(text_image)
+            color_img_res = Api.post_create_img_item(item_dict["color_img_path"])
+            gray_img_res = Api.post_create_img_item(item_dict["gray_img_path"])
             itemDTO = DTO.ItemDTO(
                 body="",
-                css_selector="",
-                grayimg=img_res['name'],
-                colorimg=img_res['name']
+                css_selector=css_path,
+                grayimg=gray_img_res['name'],
+                colorimg=color_img_res['name']
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         
