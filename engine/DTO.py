@@ -26,11 +26,14 @@ class ScanDTO:
             errortype : str,
             errormessage : str,
             guide : str = "",
+            erroroption : str = "ERROR"
         ):
         self.errortype = errortype
         self.errormessage = errormessage
         self.guide = guide
+        self.erroroption = erroroption
     def __iter__(self):
         yield 'errortype', self.errortype
         yield 'errormessage', self.errormessage
         yield 'guide', self.guide
+        yield 'erroroption', self.erroroption

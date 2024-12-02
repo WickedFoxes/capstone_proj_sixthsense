@@ -1,7 +1,12 @@
 package com.capstone.sixthsense.model;
 
+import com.capstone.sixthsense.enumeration.ErrorOption;
+import com.capstone.sixthsense.enumeration.ScanStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,8 +28,9 @@ public class Scan {
 	@Column(name = "errormessage")
 	private String errormessage;
 	
-	@Column(columnDefinition = "TEXT", name = "guide")
-	private String guide;
+	@Column(name = "erroroption")
+	@Enumerated(EnumType.STRING)
+	private ErrorOption erroroption = ErrorOption.ERROR;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "page_id", referencedColumnName="id")
@@ -60,12 +66,12 @@ public class Scan {
 		this.errormessage = errormessage;
 	}
 
-	public String getGuide() {
-		return guide;
+	public ErrorOption getErroroption() {
+		return erroroption;
 	}
 
-	public void setGuide(String guide) {
-		this.guide = guide;
+	public void setErroroption(ErrorOption erroroption) {
+		this.erroroption = erroroption;
 	}
 
 	public Page getPage() {
