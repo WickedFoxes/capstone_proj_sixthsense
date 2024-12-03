@@ -8,7 +8,7 @@ axios.defaults.withCredentials = true;
 
 function ScheduleModal({ projectId, show, onHide }) {
   const [scheduleTitle, setScheduleTitle] = useState(""); // 검사 예약 제목
-  const [scheduleDescription, setScheduleDescription] = useState(""); // 검사 예약 설명
+  const [scheduleDescription, setScheduleDescription] = useState(""); // 검사 예약 내용
   const [scheduleDate, setScheduleDate] = useState(""); // 검사 예약 날짜/시간
 
   // 검사 예약 요청

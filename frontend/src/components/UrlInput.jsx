@@ -248,7 +248,7 @@ function UrlInput() {
         </div>
       </div>
 
-      {/* 검사 예약 모달 */}
+      {/* 검사 예약 모달 창 */}
       <ScheduleModal
         projectId={projectId}
         show={showScheduleModal}

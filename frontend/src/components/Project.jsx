@@ -4,20 +4,23 @@ import { Button, Card, Row, Col, Dropdown, Modal, Form } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import { API } from "../config";
+import ScheduleModal from "./ScheduleModal";
 
 axios.defaults.withCredentials = true;
 
 function Project() {
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [schedules, setSchedules] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const navigate = useNavigate();
 
   const goProjectPage = (projectId) => {
     navigate(`/project/${projectId}`);
   };
 
-  // 프로젝트 목록 가져오는 함수
+  // 프로젝트 목록 가져오기
   const fetchProjects = async () => {
     try {
       const response = await axios.get(`${API.PROJECTLIST}`);
@@ -29,13 +32,29 @@ function Project() {
     }
   };
 
+  // 스케줄 목록 가져오기
+  const fetchSchedules = async () => {
+    try {
+      const response = await axios.get(`${API.GETSCHEDULELIST}`);
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setSchedules(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching schedule list:", error);
+    }
+  };
+
   useEffect(() => {
-    fetchProjects(); // 초기 로드 시 프로젝트 목록 가져오기
+    fetchProjects();
+    fetchSchedules();
 
-    // 4초마다 fetchProjects를 호출하여 자동 갱신
-    const intervalId = setInterval(fetchProjects, 4000);
+    // 4초마다 자동 갱신
+    const intervalId = setInterval(() => {
+      fetchProjects();
+      fetchSchedules();
+    }, 4000);
 
-    return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 해제
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleProjectUpdate = async () => {
@@ -83,50 +102,84 @@ function Project() {
 
   return (
     <Row className="justify-content-start" style={{ margin: "20px" }}>
-      {projects.map((project, index) => (
-        <Col key={index} xs={12} sm={6} md={4} className="mb-3">
-          <Card style={{ width: "auto", height: "auto", margin: "5px" }}>
-            <Card.Body style={{ position: "relative" }}>
-              <Card.Title>{project.title}</Card.Title>
-              <Card.Text>{project.description}</Card.Text>
+      {projects.map((project, index) => {
+        const projectSchedules = schedules.filter(
+          (schedule) =>
+            schedule.project_id === project.id &&
+            new Date(schedule.date) > new Date()
+        );
 
-              <Button
-                variant="outline-primary"
-                onClick={() => goProjectPage(project.id)}
-              >
-                보러가기
-              </Button>
+        const upcomingSchedule =
+          projectSchedules.length > 0
+            ? new Date(projectSchedules[0].date).toLocaleString()
+            : null;
 
-              <Dropdown
-                style={{ position: "absolute", top: "10px", right: "10px" }}
-              >
-                <Dropdown.Toggle
-                  variant="outline-secondary"
-                  id="dropdown-basic"
+        return (
+          <Col key={index} xs={12} sm={6} md={4} className="mb-3">
+            <Card style={{ width: "auto", height: "auto", margin: "5px" }}>
+              <Card.Body style={{ position: "relative" }}>
+                <Card.Title>{project.title}</Card.Title>
+                <Card.Text>
+                  {project.description}
+                  {upcomingSchedule && (
+                    <div
+                      style={{
+                        fontSize: "0.8rem",
+                        color: "gray",
+                        marginTop: "5px",
+                      }}
+                    >
+                      검사 예약: {upcomingSchedule}
+                    </div>
+                  )}
+                </Card.Text>
+
+                <Button
+                  variant="outline-primary"
+                  onClick={() => goProjectPage(project.id)}
                 >
-                  편집
-                </Dropdown.Toggle>
+                  보러가기
+                </Button>
 
-                <Dropdown.Menu>
-                  <Dropdown.Item
-                    onClick={() => {
-                      setSelectedProject(project);
-                      setShowEditModal(true);
-                    }}
+                <Dropdown
+                  style={{ position: "absolute", top: "10px", right: "10px" }}
+                >
+                  <Dropdown.Toggle
+                    variant="outline-secondary"
+                    id="dropdown-basic"
                   >
-                    수정
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    onClick={() => handleProjectDelete(project.id)}
-                  >
-                    삭제
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Card.Body>
-          </Card>
-        </Col>
-      ))}
+                    편집
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu>
+                    <Dropdown.Item
+                      onClick={() => {
+                        setSelectedProject(project);
+                        setShowEditModal(true);
+                      }}
+                    >
+                      수정
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={() => handleProjectDelete(project.id)}
+                    >
+                      삭제
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={() => {
+                        setSelectedProject(project);
+                        setShowScheduleModal(true);
+                      }}
+                    >
+                      검사 예약
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Card.Body>
+            </Card>
+          </Col>
+        );
+      })}
 
       {/* 프로젝트 수정 모달 */}
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
@@ -177,6 +230,15 @@ function Project() {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* 검사 예약 모달 */}
+      {selectedProject && (
+        <ScheduleModal
+          projectId={selectedProject.id.toString()}
+          show={showScheduleModal}
+          onHide={() => setShowScheduleModal(false)}
+        />
+      )}
     </Row>
   );
 }
