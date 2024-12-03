@@ -4,6 +4,7 @@ import { Button, Form, Row, Col, Container } from "react-bootstrap";
 import axios from "axios";
 import { API } from "../config";
 import ReportExport from "./ReportExport"; // ReportExport 컴포넌트 가져오기
+import ScheduleModal from "./ScheduleModal"; // ScheduleModal 컴포넌트 가져오기
 
 axios.defaults.withCredentials = true;
 
@@ -16,6 +17,8 @@ function UrlInput() {
   const [htmlBody, setHtmlBody] = useState(""); // HTML 상태
   const [pageType, setPageType] = useState("URL"); // 드롭다운 선택 값 (URL/TEXT)
   const [isButtonDisabled, setIsButtonDisabled] = useState(true); // 등록 버튼 비활성화 상태
+
+  const [showScheduleModal, setShowScheduleModal] = useState(false); // 검사 예약 모달 상태
 
   // 전체 프로젝트 목록 가져오기
   useEffect(() => {
@@ -235,8 +238,22 @@ function UrlInput() {
           >
             페이지 전체 검사
           </Button>
+          <Button
+            variant="outline-success"
+            onClick={() => setShowScheduleModal(true)}
+            className="ms-2"
+          >
+            검사 예약
+          </Button>
         </div>
       </div>
+
+      {/* 검사 예약 모달 */}
+      <ScheduleModal
+        projectId={projectId}
+        show={showScheduleModal}
+        onHide={() => setShowScheduleModal(false)}
+      />
     </Container>
   );
 }
