@@ -47,7 +47,7 @@ public class Page {
 	@Enumerated(EnumType.STRING)
 	private PageType pagetype = PageType.URL;
 	
-	@Column(columnDefinition = "TEXT", name = "htmlbody")
+	@Column(columnDefinition = "LONGTEXT", name = "htmlbody")
 	private String htmlbody; 
 	
 	@ManyToOne(fetch = FetchType.LAZY)

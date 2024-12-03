@@ -456,22 +456,60 @@ class crawler:
     
     def get_text_img_list(self):
         leaf_elements = self.driver.find_elements(By.XPATH, "//*[not(*)]")
-        text_image_list = []
+        text_image_dict = {}
         for leaf in leaf_elements:
             background_image = leaf.value_of_css_property("background-image")
             if(leaf.text.strip() 
             and not (background_image and "url(" in background_image)):
                 color_img_path, gray_img_path = self.capture_element(leaf)
                 if(gray_img_path and ImageProcess.is_text_image(gray_img_path)):
-                    text_image_list.append(color_img_path)
-        return text_image_list
+                    css_selector = self.get_css_path(leaf)
+                    text_image_dict[css_selector] = {
+                        'color_img_path' : color_img_path,
+                        'gray_img_path' : gray_img_path
+                    }
+        return text_image_dict
     
     def get_contrast_error_text_img_dict(self):
-        text_image_list = self.get_text_img_list()
+        text_image_dict = self.get_text_img_list()
         error_image = {}
         
-        for text_image in text_image_list:
-            ratio = ImageProcess.check_text_contrast(text_image)
+        for css_path, image_dict in text_image_dict.items():
+            ratio = ImageProcess.check_text_contrast(image_dict['gray_img_path'])
             if(ratio < 4.5):
-                error_image[text_image] = ratio
+                error_image[css_path] = {
+                    'ratio' : ratio,
+                    'color_img_path' : image_dict['color_img_path'],
+                    'gray_img_path' : image_dict['gray_img_path'],
+                }
         return error_image
+    
+    def get_required_id_and_info(self):
+        # innerText에 "아이디"를 포함하는 요소 찾기
+        id_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), '아이디')]")
+        # 필수 입력 안내사항이 있는지 확인
+        info_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), '필수입력') or contains(text(), '필수 입력')]")
+
+        required_id_path = None
+        required_id_img_color = None
+        required_id_img_gray = None
+        for element in id_elements:
+            if("*" in element.text):
+                required_id_path = self.get_css_path(element)
+                required_id_img_color, required_id_img_gray = self.capture_element(element)
+                break
+        
+        required_info_path = None
+        for element in info_elements:
+            if("*" in element.text):
+                required_info_path = self.get_css_path(element)
+                break
+        
+        return {
+            "check" : (required_id_path == None 
+                       or (required_id_path and required_info_path)),
+            "css_path" : required_id_path,
+            'color_img_path' : required_id_img_color,
+            'gray_img_path' : required_id_img_gray,
+        }
+

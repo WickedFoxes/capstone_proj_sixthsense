@@ -16,4 +16,6 @@ export const API = {
   ALLPAGERUN: `${BASE_URL}/page/run/by-project/`,
   SCANLIST: `${BASE_URL}/scan/list/by-page/`,
   GETIMAGE: `${BASE_URL}/image/`,
+  MAKESCHEDULE: `${BASE_URL}/schedule/create/by-project/`,
+  GETSCHEDULELIST: `${BASE_URL}/schedule/list`,
 };

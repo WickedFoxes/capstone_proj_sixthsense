@@ -15,15 +15,21 @@ class html_scanner:
         parsed_url = urlparse(base_url)
         domain = f"{parsed_url.scheme}://{parsed_url.netloc}/"
         
-        # link[type='text/css'][href] 요소 찾기
-        links = self.soup.find_all("link", {"type": "text/css", "href": True})
+        # src, href를 가진 요소 찾기
+        links = self.soup.select('[src], [href]')
 
         # href의 도메인이 비어 있는 경우 수정
         for link in links:
-            href = link['href']
-            # URL이 절대 경로가 아니라면 도메인 추가
-            if not href.startswith("http://") and not href.startswith("https://"):
-                link['href'] = urljoin(domain, href)  # 도메인을 추가하여 절대 URL로 변환
+            if link.has_attr('href'):
+                href = link['href']
+                # URL이 절대 경로가 아니라면 도메인 추가
+                if href.startswith("/"):
+                    link['href'] = urljoin(domain, href)  # 도메인을 추가하여 절대 URL로 변환
+            if link.has_attr('src'):
+                src = link['src']
+                # URL이 절대 경로가 아니라면 도메인 추가
+                if src.startswith("/"):
+                    link['src'] = urljoin(domain, src)  # 도메인을 추가하여 절대 URL로 변환
 
         # 수정된 HTML 출력
         return self.soup.prettify()
@@ -53,7 +59,8 @@ class html_scanner:
                         <img>의 alt에는 적절한 대체 텍스트를 제공해야 합니다.
                         (장식 또는 꾸밈 목적 등의 의미 없는 이미지는 대체 텍스트를 제공하지 않아도 됩니다.)\
                         """
-                    )
+                    ),
+                    erroroption="WARNING"
                 )
                 css_selector = self.get_css_path(field)
                 
@@ -61,7 +68,7 @@ class html_scanner:
                     body=field.prettify(),
                     css_selector=css_selector,
                 )
-                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                if(css_selector in image_dict and image_dict[css_selector]['color_img_path']):
                     color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
                     gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
                     itemDTO = DTO.ItemDTO(
@@ -84,14 +91,15 @@ class html_scanner:
                         <input[type="image"]>의 alt에는 적절한 대체 텍스트를 제공해야 합니다.
                         (장식 또는 꾸밈 목적 등의 의미 없는 이미지는 대체 텍스트를 제공하지 않아도 됩니다.)\
                         """
-                    )
+                    ),
+                    erroroption="WARNING"
                 )
                 css_selector = self.get_css_path(field)
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
                 )
-                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                if(css_selector in image_dict and image_dict[css_selector]['color_img_path']):
                     color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
                     gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
                     itemDTO = DTO.ItemDTO(
@@ -113,14 +121,15 @@ class html_scanner:
                         <area>의 alt에는 적절한 대체 텍스트를 제공해야 합니다.
                         (장식 또는 꾸밈 목적 등의 의미 없는 이미지는 대체 텍스트를 제공하지 않아도 됩니다.)\
                         """
-                    )
+                    ),
+                    erroroption="WARNING"
                 )
                 css_selector = self.get_css_path(field)
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
                     css_selector=css_selector,
                 )
-                if(image_dict[css_selector] and image_dict[css_selector]['color_img_path']):
+                if(css_selector in image_dict and image_dict[css_selector]['color_img_path']):
                     color_img_res = Api.post_create_img_item(image_dict[css_selector]['color_img_path'])
                     gray_img_res = Api.post_create_img_item(image_dict[css_selector]['gray_img_path'])
                     itemDTO = DTO.ItemDTO(
@@ -147,7 +156,8 @@ class html_scanner:
                 errortype="02.자막 제공",
                 errormessage=textwrap.dedent(
                     """설명이나 자막이 없이 제공되고 있는 동영상이 있는 것으로 추정됩니다."""
-                )
+                ),
+                erroroption="WARNING"
             )
             img_res = Api.post_create_img_item(video_image)
             itemDTO = DTO.ItemDTO(
@@ -182,7 +192,8 @@ class html_scanner:
                 errortype="03.색에 무관한 콘텐츠 인식",
                 errormessage=textwrap.dedent(
                     """색이 아닌 패턴, 굵기, 모양, 테두리 등의 방법으로 구분되는 요소가 없는 것으로 추정됩니다."""
-                )
+                ),
+                erroroption="WARNING"
             )
             img_res = Api.post_create_img_item(color_dependent_image)
             itemDTO = DTO.ItemDTO(
@@ -198,25 +209,64 @@ class html_scanner:
             create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
 
+
+    # 4. 명확한 지시 사항 제공
+    # 모양으로만 정보를 제공해서는 안된다.
+    def check_required_id_and_info(self,
+                                  request_id,
+                                  id_and_info_dict):
+        error_message = []
+
+        if not id_and_info_dict["check"]:
+            scanDTO = DTO.ScanDTO(
+                errortype="04.명확한 지시 사항 제공",
+                errormessage=textwrap.dedent(
+                    f"""\
+                    '*' 모양으로만 정보를 제공해서는 안됩니다. 
+                    '* 표시는 필수 입력 사항입니다.'와 같은 문구를 제공하시요.\
+                    """
+                ),
+                erroroption="ERROR"
+            )
+            color_img_res = Api.post_create_img_item(id_and_info_dict["color_img_path"])
+            gray_img_res = Api.post_create_img_item(id_and_info_dict["gray_img_path"])
+            body_element = self.soup.select_one(id_and_info_dict["css_path"])
+
+            itemDTO = DTO.ItemDTO(
+                body=body_element.prettify(),
+                css_selector=id_and_info_dict["css_path"],
+                grayimg=gray_img_res['name'],
+                colorimg=color_img_res['name']
+            )
+            error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
+        return error_message   
+
+
     # 5.텍스트 콘텐츠의 명도 대비
     # 텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 한다.
     def check_text_image_contrast(self,
                                   request_id,
                                   text_image_error_dict):
         error_message = []
-        for text_image, ratio in text_image_error_dict.items():
+        for css_path, item_dict in text_image_error_dict.items():
             scanDTO = DTO.ScanDTO(
                 errortype="05.텍스트 콘텐츠의 명도 대비",
                 errormessage=textwrap.dedent(
-                    f"""텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 합니다.(현재 {round(ratio,2)})"""
-                )
+                    f"""텍스트 콘텐츠와 배경 간의 명도 대비는 4.5 대 1 이상이어야 합니다.(현재 {round(item_dict["ratio"],2)})"""
+                ),
+                erroroption="WARNING"
             )
-            img_res = Api.post_create_img_item(text_image)
+            color_img_res = Api.post_create_img_item(item_dict["color_img_path"])
+            gray_img_res = Api.post_create_img_item(item_dict["gray_img_path"])
             itemDTO = DTO.ItemDTO(
                 body="",
-                css_selector="",
-                grayimg=img_res['name'],
-                colorimg=img_res['name']
+                css_selector=css_path,
+                grayimg=gray_img_res['name'],
+                colorimg=color_img_res['name']
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         
@@ -239,7 +289,8 @@ class html_scanner:
             errortype="06.자동 재생 금지",
             errormessage=textwrap.dedent(
                 """페이지 진입 시 재생되고 있는 오디오가 있어서는 안됩니다."""
-            )
+            ),
+            erroroption="ERROR"
         )
         
         itemDTO = DTO.ItemDTO(
@@ -261,7 +312,8 @@ class html_scanner:
             errortype="06.자동 재생 금지",
             errormessage=textwrap.dedent(
                 """페이지 진입 시 재생되고 있는 비디오가 있어서는 안됩니다.(비디오가 소리 없이 재생 중인 경우에는 허용)"""
-            )
+            ),
+            erroroption="WARNING"
         )
         itemDTO = DTO.ItemDTO(
             body=video_tag.prettify(),
@@ -301,7 +353,8 @@ class html_scanner:
             )
         scanDTO = DTO.ScanDTO(
             errortype=f"08.키보드 사용 보장(width:{window_size["width"]}px, height:{window_size["height"]}px)",
-            errormessage="키보드를 사용한 초점 이동이 보장되어야 한다."
+            errormessage="키보드를 사용한 초점 이동이 보장되어야 한다.",
+            erroroption="ERROR"
         )
         error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         for error_item in error_message:
@@ -324,7 +377,8 @@ class html_scanner:
             )
             scanDTO = DTO.ScanDTO(
                 errortype=f"09.초점 이동(width:{window_size["width"]}px, height:{window_size["height"]}px)",
-                errormessage="키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다."
+                errormessage="키보드에 의한 초점은 시각적으로 구별할 수 있어야 한다.",
+                erroroption="ERROR"
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
         for error_item in error_message:
@@ -361,7 +415,8 @@ class html_scanner:
                     errortype=f"10.조작 가능(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                     errormessage=textwrap.dedent(
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
@@ -388,7 +443,8 @@ class html_scanner:
                     errortype=f"10.조작 가능(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                     errormessage=textwrap.dedent(
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
@@ -415,7 +471,8 @@ class html_scanner:
                     errortype=f"10.조작 가능(width:{window_size["width"]}px, height:{window_size["height"]}px)",
                     errormessage=textwrap.dedent(
                         f"""컨트롤의 크기는 대각선 길이가 6mm 이상이 되도록 제공해야 합니다. (현재 {round(diagonal*PIXEL_TO_MM, 2)}mm)"""
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
@@ -447,7 +504,8 @@ class html_scanner:
                 errortype="12.정지 기능 제공",
                 errormessage=textwrap.dedent(
                     """자동으로 변경되는 콘텐츠를 확인하였습니다. 이전, 다음, 정지 기능을 제공하는지 확인하시오."""
-                )
+                ),
+                erroroption="WARNING"
             )
             img_res = Api.post_create_img_item(auto_changed_image)
             itemDTO = DTO.ItemDTO(
@@ -495,7 +553,8 @@ class html_scanner:
         if(not is_a_tag or not is_skip_link):
             scanDTO = DTO.ScanDTO(
                 errortype=f"14.반복 영역 건너뛰기(width:{window_size["width"]}px, height:{window_size["height"]}px)",
-                errormessage="반복되는 영역이 있는 경우, a태그를 활용한 건너뛰기 링크가 마크업상 최상단에 위치해야 합니다."
+                errormessage="반복되는 영역이 있는 경우, a태그를 활용한 건너뛰기 링크가 마크업상 최상단에 위치해야 합니다.",
+                erroroption="ERROR"
             )
             itemDTO = DTO.ItemDTO(
                 body=header_tag.prettify(),
@@ -506,7 +565,8 @@ class html_scanner:
         if(is_skip_link and is_first_tab_hidden):
             scanDTO = DTO.ScanDTO(
                 errortype=f"14.반복 영역 건너뛰기(width:{window_size["width"]}px, height:{window_size["height"]}px)",
-                errormessage="반복 영역 건너뛰기 기능은 키보드 접근 시 화면에 노출되어야 합니다."
+                errormessage="반복 영역 건너뛰기 기능은 키보드 접근 시 화면에 노출되어야 합니다.",
+                erroroption="ERROR"
             )
             itemDTO = DTO.ItemDTO(
                 body=first_tab_tag.prettify(),
@@ -518,7 +578,8 @@ class html_scanner:
         if(is_skip_link and not self.soup.select_one(href_attribute)):
             scanDTO = DTO.ScanDTO(
                 errortype=f"14.반복 영역 건너뛰기(width:{window_size["width"]}px, height:{window_size["height"]}px)",
-                errormessage="건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다."
+                errormessage="건너뛰기 대상으로 명시된 태그가 실제로 존재해야 합니다.",
+                erroroption="ERROR"
             )
             itemDTO = DTO.ItemDTO(
                 body=first_tab_tag.prettify(),
@@ -543,7 +604,8 @@ class html_scanner:
         if not head_tag or not title_tag:
             scanDTO = DTO.ScanDTO(
                 errortype="15.제목 제공",
-                errormessage="<head> 태그에 페이지 내용을 유추할 수 있는 적절한 <title>을 제공해야 한다."
+                errormessage="<head> 태그에 페이지 내용을 유추할 수 있는 적절한 <title>을 제공해야 한다.",
+                erroroption="ERROR"
             )
             if not head_tag:
                 itemDTO = DTO.ItemDTO(
@@ -565,7 +627,8 @@ class html_scanner:
             if not title:
                 scanDTO = DTO.ScanDTO(
                     errortype="15.제목 제공",
-                    errormessage="<iframe>에 적절한 title 속성을 제공해야 한다."
+                    errormessage="<iframe>에 적절한 title 속성을 제공해야 한다.",
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=iframe.prettify(),
@@ -587,7 +650,8 @@ class html_scanner:
             if not a_innerHTML:
                 scanDTO = DTO.ScanDTO(
                     errortype="16.적절한 링크 텍스트",
-                    errormessage="내부가 비어있는 <a> 태그는 제거하거나 수정해야 한다."
+                    errormessage="내부가 비어있는 <a> 태그는 제거하거나 수정해야 한다.",
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=a_tag.prettify(),
@@ -608,7 +672,8 @@ class html_scanner:
         if not html_tag.get('lang'):
             scanDTO = DTO.ScanDTO(
                 errortype="17.기본 언어 표시",
-                errormessage="<html> 태그에 주로 사용하는 언어를 lang 속성으로 명시해야 한다."
+                errormessage="<html> 태그에 주로 사용하는 언어를 lang 속성으로 명시해야 한다.",
+                erroroption="ERROR"
             )
             itemDTO = DTO.ItemDTO(
                 body=html_tag.prettify(),
@@ -633,7 +698,8 @@ class html_scanner:
             if a_target == "_blank" and not a_title:
                 scanDTO = DTO.ScanDTO(
                     errortype="18.사용자 요구에 따른 실행",
-                    errormessage="새 창이라는 것을 알 수 있도록 a 태그에 title을 제공해야 한다."
+                    errormessage="새 창이라는 것을 알 수 있도록 a 태그에 title을 제공해야 한다.",
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=a_tag.prettify(),
@@ -643,7 +709,8 @@ class html_scanner:
             elif a_onclick and "window.open" in a_onclick:
                 scanDTO = DTO.ScanDTO(
                     errortype="18.사용자 요구에 따른 실행",
-                    errormessage="새 창이라는 것을 알 수 있도록 a 태그에 title을 제공해야 한다."
+                    errormessage="새 창이라는 것을 알 수 있도록 a 태그에 title을 제공해야 한다.",
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=a_tag.prettify(),
@@ -677,7 +744,8 @@ class html_scanner:
                         해당 <table>이 데이터를 표시하기 위한 표라면, 적절한 제목을 <th>로 제공해야 합니다.
                         디자인을 위한 표라면, <caption>과 <th>를 모두 제거하십시오.\
                         """
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=table.prettify(),
@@ -694,7 +762,8 @@ class html_scanner:
                         해당 <table>이 데이터를 표시하기 위한 표라면, 적절한 설명을 <caption>으로 제공해야 합니다.
                         디자인을 위한 표라면, <caption>과 <th>를 모두 제거하십시오.\
                         """
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=table.prettify(),
@@ -730,7 +799,8 @@ class html_scanner:
                     errortype="21.레이블 제공",
                     errormessage=textwrap.dedent(
                         """해당 입력 서식에 <label>을 연결하거나, title 속성을 추가해야 합니다."""
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
@@ -749,7 +819,8 @@ class html_scanner:
                     errortype="21.레이블 제공",
                     errormessage=textwrap.dedent(
                         """해당 입력 서식에 <label>을 연결하거나, title 속성을 추가해야 합니다."""
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
@@ -768,7 +839,8 @@ class html_scanner:
                     errortype="21.레이블 제공",
                     errormessage=textwrap.dedent(
                         """해당 입력 서식에 <label>을 연결하거나, title 속성을 추가해야 합니다."""
-                    )
+                    ),
+                    erroroption="ERROR"
                 )
                 itemDTO = DTO.ItemDTO(
                     body=field.prettify(),
@@ -820,7 +892,8 @@ class html_scanner:
                         if item["keyword"] in msg['message']:
                             scanDTO = DTO.ScanDTO(
                                 errortype="23.마크업 오류 방지",
-                                errormessage=item['errormessage']
+                                errormessage=item['errormessage'],
+                                erroroption="ERROR"
                             )
                             itemDTO = DTO.ItemDTO(
                                 body=msg['extract'],

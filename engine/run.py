@@ -244,6 +244,13 @@ def default_selenium_process(request_page, width=1920, height=1080):
             image_dict=image_dict
         )
         
+        # 04.명확한 지시 사항 제공
+        required_id_and_info = crawler.get_required_id_and_info()
+        scanner.check_required_id_and_info(
+            request_id=request_page["id"], 
+            id_and_info_dict=required_id_and_info
+        )
+
         # 15.제목 제공
         title_error_check_list = scanner.check_title(request_id=request_page["id"])
 

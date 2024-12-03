@@ -4,16 +4,15 @@ import axios from "axios";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
-import { useParams } from "react-router-dom"; // useParams 추가
+import { useParams } from "react-router-dom";
 import { API } from "../config";
 
 function ReportExport() {
-  const { projectId } = useParams(); // URL에서 projectId 가져오기
+  const { projectId } = useParams();
   const [projectTitle, setProjectTitle] = useState("");
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 프로젝트 제목 가져오기
   useEffect(() => {
     const fetchProjectTitle = async () => {
       try {
@@ -37,7 +36,7 @@ function ReportExport() {
   useEffect(() => {
     const fetchPagesAndScanResults = async () => {
       try {
-        if (!projectId) return; // projectId가 없는 경우 실행하지 않음
+        if (!projectId) return;
         const pagesResponse = await axios.get(`${API.PAGELIST}${projectId}`);
         if (pagesResponse.status === 200 && Array.isArray(pagesResponse.data)) {
           const pagesWithResults = await Promise.all(
@@ -46,49 +45,26 @@ function ReportExport() {
                 const scanResponse = await axios.get(
                   `${API.SCANLIST}${page.id}`
                 );
-                console.log(
-                  "Scan results for page",
-                  page.id,
-                  scanResponse.data
-                );
 
-                // 에러 메시지별로 그룹화
-                const groupedErrors = scanResponse.data.reduce(
-                  (acc, result) => {
-                    if (!acc[result.error]) {
-                      acc[result.error] = [];
-                    }
-                    acc[result.error].push(result);
-                    return acc;
-                  },
-                  {}
-                );
-
-                // 고유한 에러 메시지의 수
-                const uniqueErrorCount = Object.keys(groupedErrors).length;
+                const totalErrors = scanResponse.data.length;
 
                 return {
                   title: page.title || "제목 없음",
-                  url: page.url || "URL 없음",
+                  url: page.url || "url 없음",
                   results: scanResponse.data || [],
-                  errorcount: uniqueErrorCount, // 고유 에러 개수
+                  errorcount: totalErrors, // 전체 오류 개수
                 };
               } catch (error) {
-                console.error(
-                  "Error fetching scan results for page:",
-                  page.id,
-                  error
-                );
+                console.error("Error fetching scan results for page:", error);
                 return {
                   title: page.title || "제목 없음",
-                  url: page.url || "URL 없음",
+                  url: page.url || "url 없음",
                   results: [],
-                  errorcount: 0, // 에러가 없으면 0
+                  errorcount: 0,
                 };
               }
             })
           );
-          console.log("Pages with results:", pagesWithResults);
           setPages(pagesWithResults);
         }
       } catch (error) {
@@ -117,7 +93,8 @@ function ReportExport() {
           index: index + 1,
           title: page.title,
           url: page.url,
-          errorcount: page.errorcount, // 에러 개수 추가
+          errorcount: page.errorcount,
+          pageBreak: '<w:p><w:r><w:br w:type="page"/></w:r></w:p>',
           results: page.results.map((result, idx) => ({
             idx: idx + 1,
             error: result.error || "오류 없음",
@@ -136,7 +113,7 @@ function ReportExport() {
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
 
-      saveAs(output, "web-accessibility-report.docx");
+      saveAs(output, "웹 접근성 자동 검사 보고서.docx");
     } catch (error) {
       console.error("Error generating report:", error);
       alert("보고서 생성 중 오류가 발생했습니다.");
