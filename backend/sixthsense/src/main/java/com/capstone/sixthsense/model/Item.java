@@ -29,7 +29,7 @@ public class Item {
 	@Enumerated(EnumType.STRING)
 	private ItemType itemtype;
 	
-	@Column(columnDefinition = "TEXT", name = "body")
+	@Column(columnDefinition = "LONGTEXT", name = "body")
 	private String body;	
 	
 	@Column(name = "tabindex")

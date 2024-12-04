@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sixthsense URL Collection</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .button-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      background-color: #ffffff;
+      color: #2575fc;
+      font-size: 1rem;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #2575fc;
+      color: #ffffff;
+    }
+
+        /* Select styling */
+        select {
+      width: 250px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      border: 2px solid #ffffff;
+      border-radius: 20px;
+      background-color: #ffffff;
+      color: #2575fc;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    select:hover {
+      border-color: #2575fc;
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    select:focus {
+      border-color: #6a11cb;
+      box-shadow: 0 0 10px rgba(106, 17, 203, 0.5);
+    }
+
+    option {
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      color: #2575fc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sixthsense URL Collection</h1>
+  <div class="button-container">
+    <button class="button" id="url">URL 수집</button>
+    <button class="button" id="url_html">URL + HTML 수집</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

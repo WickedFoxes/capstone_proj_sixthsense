@@ -44,7 +44,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:5175"); // 허용할 origin 설정
+        configuration.addAllowedOriginPattern("http://localhost:5175");
+        configuration.addAllowedOriginPattern("chrome-extension://*");
 //        configuration.addAllowedOrigin("추가 origin 주소");
         configuration.addAllowedMethod("*"); // 모든 HTTP 메소드 허용
         configuration.addAllowedHeader("*"); // 모든 헤더 허용
