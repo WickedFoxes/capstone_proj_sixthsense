@@ -676,7 +676,7 @@ class html_scanner:
                 erroroption="ERROR"
             )
             itemDTO = DTO.ItemDTO(
-                body=html_tag.prettify(),
+                body=self.extract_tag_head("html", html_tag),
                 css_selector="html"
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
