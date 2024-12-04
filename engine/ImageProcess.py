@@ -25,6 +25,9 @@ def image_matching_check(main_image_path, template_image_path, threshold = 0.8):
 
 def check_text_contrast(img_path):
     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+    return image_contrast(img)
+
+def image_contrast(img):
     # 흑백 변환 후 이진화
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -162,3 +165,105 @@ def is_text_image(gray_img_path, threshold=10) -> bool:
     
     # 텍스트 여부 판별
     return std_dev > threshold
+
+# 구별이 어려운 부분을 잘라 저장
+def check_content_separation(img_path):
+    save_dir = os.path.dirname(img_path)
+    # 이미지 로드
+    image = cv2.imread(img_path)
+
+    height = image.shape[0]
+    width = image.shape[1]
+    offset = 20
+
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # 에지 검출
+    edges = cv2.Canny(gray, 30, 100)
+
+    # 팽창 연산
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 30))
+    dilated = cv2.dilate(edges, kernel)
+
+    # 윤곽선 추출
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    objs = []
+    ret = []
+
+    for contour in contours:
+        if cv2.contourArea(contour) < 1000:  # 작은 영역 제거
+            continue
+        x, y, w, h = cv2.boundingRect(contour)
+        cropped = image[max(y-offset,0):min(y + h + offset, height),max(x-offset,0):min(x + w + offset, width)]
+        if(has_divide_line(cropped)): # 구분선이 존재하면 통과
+            continue
+        objs.append({'xmin':x,'ymin':y,'xmax':x+w,'ymax':y+h,'contrast':image_contrast(cropped)})
+    
+    root = [i for i in range(len(objs))]
+    for i in range(len(objs)):
+        rt = i
+        while(root[rt] != rt):
+            rt = root[rt]
+        root[i] = rt
+        m = 0
+        for j in range(i+1, len(objs)):
+            # 가까운 위치에 있고 명도대비가 비슷하면 오류로 처리
+            x1, y1, x2, y2, c1 = objs[i]['xmin'],objs[i]['ymin'],objs[i]['xmax'],objs[i]['ymax'], objs[i]['contrast']
+            x3, y3, x4, y4, c2 = objs[j]['xmin'],objs[j]['ymin'],objs[j]['xmax'],objs[j]['ymax'], objs[j]['contrast']
+
+            l1, l2 = x4 - x1, x2 - x3
+            l3, l4 = y4 - y1, y2 - y3
+            l5, l6 = max(-l1, -l2), max(-l3, -l4)
+
+            vertical = l1 > 0 and l2 > 0 and min(l1, l2)/min(x2-x1,x4-x3) > 0.8 and l6 > 0 and l6 < 10
+            horizontal = l3 > 0 and l4 > 0 and min(l3, l4)/min(y2-y1,y4-y3) > 0.8 and l5 > 0 and l5 < 10
+
+            # 구별하기 어려운 요소들을 병합
+            if (vertical or horizontal) and abs(c1 - c2) < 0.3:
+                cur = j
+                while(root[cur] != cur):
+                    cur = root[cur]
+                root[j] = rt
+                if cur == rt: continue
+                root[cur] = rt
+                objs[rt]['xmin'] = min(objs[cur]['xmin'], objs[rt]['xmin'])
+                objs[rt]['ymin'] = min(objs[cur]['ymin'], objs[rt]['ymin'])
+                objs[rt]['xmax'] = max(objs[cur]['xmax'], objs[rt]['xmax'])
+                objs[rt]['ymax'] = max(objs[cur]['ymax'], objs[rt]['ymax'])
+                m+=1
+        if(rt == i and m == 0):
+            root[i] = -1
+            
+    # 이미지 저장
+    for i in range(len(objs)):
+        if(i == root[i]):
+            xmin, ymin, xmax, ymax = objs[i]['xmin'], objs[i]['ymin'], objs[i]['xmax'], objs[i]['ymax']
+            cropped = image[ymin:ymax, xmin:xmax]
+            save_path = save_dir + '\\' + str(uuid.uuid4()) + '.png'
+            cv2.imwrite(save_path, cropped)
+            ret.append(save_path)
+
+    return ret
+
+# 구분선이 존재하는지 판별
+def has_divide_line(image) -> bool:
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # 흑백 변환
+
+    # 엣지 감지
+    edges = cv2.Canny(gray, 5, 20)
+
+    # 모폴로지 연산으로 수평/수직선 강조
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 1))  # 수평선 강조
+    horizontal_lines = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 50))  # 수직선 강조
+    vertical_lines = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
+
+    # 전체 구분선 결합
+    lines = cv2.add(horizontal_lines, vertical_lines)
+
+    # 허프 변환으로 선 검출
+    lines_detected = cv2.HoughLinesP(lines, 1, np.pi / 180, threshold=100, minLineLength=50, maxLineGap=10)
+    
+    return lines_detected is not None
