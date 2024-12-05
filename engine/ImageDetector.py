@@ -4,15 +4,15 @@ import os
 import uuid
 
 class image_detector:
-    def __init__(self, use_640 = False):
+    def __init__(self):
         current_dir = os.path.dirname(__file__)
-        model_path = os.path.join(current_dir, "model")
-        if(use_640):
-            model_path = os.path.join(model_path, "yolo640.pt")
-            self.imgsz = 640
-        else:
-            model_path = os.path.join(model_path, "yolo1024.pt")
-            self.imgsz = 1024
+        model_path = os.path.join(current_dir, "model", "yolo832")
+        # if(use_640):
+        #     model_path = os.path.join(model_path, "yolo640.pt")
+        #     self.imgsz = 640
+        # else:
+        #     model_path = os.path.join(model_path, "yolo1024.pt")
+        #     self.imgsz = 1024
         self.model = YOLO(model_path)
 
     # [{'img_path', 'class_name'}, ...] 배열을 리턴
