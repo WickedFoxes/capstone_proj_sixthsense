@@ -101,7 +101,7 @@ class crawler:
         color_img_path, gray_img_path = self.capture_element(element)
         return color_img_path, gray_img_path
     
-    def press_tab(self, sec=0.2):
+    def press_tab(self, sec=0.25):
         # ActionChains(self.driver).key_down(Keys.TAB)
         focused_element = self.driver.switch_to.active_element
         focused_element.send_keys(Keys.TAB)
@@ -275,9 +275,10 @@ class crawler:
         return ""
     
     def capture_element(self, element):
-        if(element is None 
+        if(element is None  
            or element.size["width"] == 0): 
             return None, None
+        
         capture_img_path = self.download_path+'\\'+str(uuid.uuid4())+'.png'
         # 해당 요소를 캡처하여 이미지로 저장
         element.screenshot(capture_img_path)
@@ -458,6 +459,8 @@ class crawler:
         leaf_elements = self.driver.find_elements(By.XPATH, "//*[not(*)]")
         text_image_dict = {}
         for leaf in leaf_elements:
+            if(not leaf):
+                continue
             background_image = leaf.value_of_css_property("background-image")
             if(leaf.text.strip() 
             and not (background_image and "url(" in background_image)):

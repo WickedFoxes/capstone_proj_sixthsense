@@ -325,6 +325,33 @@ class html_scanner:
             create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
         return error_message
     
+    # 7.콘텐츠 간의 구분
+    def check_content_separate(self, 
+                               request_id, 
+                               content_separate_result):
+        error_message = []
+        for content_separate in content_separate_result:
+            scanDTO = DTO.ScanDTO(
+                errortype="07.콘텐츠 간의 구분",
+                errormessage=textwrap.dedent(
+                    f"""배경과 명도 차이가 크지 않고, 구분선이 없는 컨텐츠를 확인하였습니다. 이웃한 콘텐츠와 구분되는지 확인하시오."""
+                ),
+                erroroption="WARNING"
+            )
+            color_img_res = Api.post_create_img_item(content_separate)
+            gray_img_res = Api.post_create_img_item(content_separate)
+            itemDTO = DTO.ItemDTO(
+                body="",
+                css_selector="",
+                grayimg=gray_img_res['name'],
+                colorimg=color_img_res['name']
+            )
+            error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        for error_item in error_message:
+            create_item = Api.post_create_item(request_id, error_item["item"])
+            create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
+        return error_message
+
     # 8.키보드 사용 보장
     # 8-1.키보드를 사용한 이동이 보장되어야 한다.
     def check_tab_loop_item(self, 
@@ -503,9 +530,9 @@ class html_scanner:
             scanDTO = DTO.ScanDTO(
                 errortype="12.정지 기능 제공",
                 errormessage=textwrap.dedent(
-                    """자동으로 변경되는 콘텐츠를 확인하였습니다. 이전, 다음, 정지 기능을 제공하는지 확인하시오."""
+                    """정지 버튼이 없이 자동으로 변경되는 콘텐츠를 확인하였습니다. 정지 기능을 제공하시오."""
                 ),
-                erroroption="WARNING"
+                erroroption="ERROR"
             )
             img_res = Api.post_create_img_item(auto_changed_image)
             itemDTO = DTO.ItemDTO(

@@ -38,7 +38,7 @@ def image_detection_process(request_page):
 
         # 이미지 분석 모델
         imageDetector = ImageDetector.image_detector()
-        result = imageDetector.predict(img_path=full_screen_img_path_before, threshold=0.5)
+        result = imageDetector.predict(img_path=full_screen_img_path_before)
 
         pagenation_result = set()
         tab_result = set()
@@ -72,19 +72,34 @@ def image_detection_process(request_page):
             if(active_item['class_name'] == 'video_cc'):
                 checked_result = []
                 for video in video_result:
-                    if(ImageProcess.image_matching_check(video, active_item['img_path'])):
+                    if(ImageProcess.image_matching_check(active_item['img_path'], video)):
                         checked_result.append(video)
                 for video in checked_result:
                     video_result.remove(video)
 
         # 슬라이드 이미지 탐색
-        auto_changed_image_list = ImageProcess.find_and_save_differences_with_connected_regions(
+        changed_image_list = ImageProcess.find_and_save_differences_with_connected_regions(
             image1_path=full_screen_img_path_before,
             image2_path=full_screen_img_path_after,
             output_dir=crawler.download_path
         )
+        auto_changed_image_list = []
+        for changed_image in changed_image_list:
+            detect_result = imageDetector.predict(changed_image)
+            
+            flag = True
+            for detect in detect_result:
+                if detect["class_name"] == "slide_stop":
+                    flag = False
+                    break
+            if(flag):
+                auto_changed_image_list.append(changed_image)
+        
         # 명도 대비 오류 텍스트
         error_text_image_dict = crawler.get_contrast_error_text_img_dict()
+
+        # 배경과 명도 차이가 크지 않고, 구분선이 없는 컨텐츠
+        content_separate_result = ImageProcess.check_content_separation(full_screen_img_path_before)
 
         # 02.자막 제공
         video_and_caption_check_list = scanner.check_video_and_caption(
@@ -102,12 +117,16 @@ def image_detection_process(request_page):
             request_id=request_page["id"],
             text_image_error_dict=error_text_image_dict
         )
+        # 07.콘텐츠 간의 구분
+        content_separate_check_list = scanner.check_content_separate(
+            request_id=request_page["id"],
+            content_separate_result = content_separate_result
+        )
         # 12.정지 기능 제공
         auto_changed_image_check_list = scanner.check_auto_changed_contents(
             request_id=request_page["id"],
             auto_changed_image_list=auto_changed_image_list
         )
-
         # 크롤러 종료
         crawler.close()
     except Exception as e:

@@ -18,9 +18,6 @@ def image_matching_check(main_image_path, template_image_path, threshold = 0.8):
 
     # 매칭 결과 분석
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-
-    # 임계값 설정 (0.8 이상으로 설정)
-    threshold = 0.8
     return max_val >= threshold
 
 def check_text_contrast(img_path):
@@ -122,7 +119,7 @@ def find_and_save_differences_with_connected_regions(image1_path, image2_path, o
     
     # Compute the difference between the two images
     diff = ImageChops.difference(image1, image2)
-    print(diff)
+    # print(diff)
 
     # Convert the difference to a binary image
     diff_np = np.array(diff.convert("L"))  # Convert to grayscale

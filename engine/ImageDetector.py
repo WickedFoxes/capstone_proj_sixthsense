@@ -6,13 +6,10 @@ import uuid
 class image_detector:
     def __init__(self):
         current_dir = os.path.dirname(__file__)
-        model_path = os.path.join(current_dir, "model", "yolo832.pt")
-        # if(use_640):
-        #     model_path = os.path.join(model_path, "yolo640.pt")
-        #     self.imgsz = 640
-        # else:
-        #     model_path = os.path.join(model_path, "yolo1024.pt")
-        #     self.imgsz = 1024
+        # model_path = os.path.join(current_dir, "model", "yolo640.pt")
+        # model_path = os.path.join(current_dir, "model", "yolo832.pt")
+        # model_path = os.path.join(current_dir, "model", "yolo1024.pt")
+        model_path = os.path.join(current_dir, "model", "yolo1024.pt")
         self.model = YOLO(model_path)
 
     # [{'img_path', 'class_name'}, ...] 배열을 리턴
@@ -28,6 +25,7 @@ class image_detector:
                 boxes_class = [[x for x in box.xyxy[0]] for box in boxes if int(box.cls[0]) == i]
                 if len(boxes_class) > 0:
                     ret.extend(self._save_objects(image, boxes_class, result.names[i], save_path))
+        # print(ret)
         return ret
     
     # 두 영역이 겹치는지 판단
