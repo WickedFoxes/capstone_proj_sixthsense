@@ -85,6 +85,7 @@ def image_detection_process(request_page):
         )
         auto_changed_image_list = []
         for changed_image in changed_image_list:
+            imageDetector = ImageDetector.image_detector(mode=832)
             detect_result = imageDetector.predict(changed_image)
             
             flag = True
