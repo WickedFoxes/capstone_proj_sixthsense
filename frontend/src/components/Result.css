@@ -1,0 +1,30 @@
+.result-count {
+  color: red;
+}
+
+.result-type {
+  font-weight: bold;
+  border-radius: 2px;
+}
+
+.result-error {
+  background-color: rgba(255, 172, 172, 0.582);
+}
+
+.result-warning {
+  background-color: rgb(255, 255, 0);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+}
+
+.card-button {
+  margin-left: auto;
+  font-weight: bold;
+  width: 120px;
+  padding: 5px 10px;
+}

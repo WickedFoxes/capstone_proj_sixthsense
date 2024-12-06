@@ -89,20 +89,37 @@ function ReportExport() {
 
       doc.setData({
         project_title: projectTitle,
-        pages: pages.map((page, index) => ({
-          index: index + 1,
-          title: page.title,
-          url: page.url,
-          errorcount: page.errorcount,
-          pageBreak: '<w:p><w:r><w:br w:type="page"/></w:r></w:p>',
-          results: page.results.map((result, idx) => ({
-            idx: idx + 1,
-            error: result.error || "오류 없음",
-            errormessage: result.errormessage || "오류 메시지 없음",
-            css_selector: result.item?.css_selector || "없음",
-            body: result.item?.body || "없음",
-          })),
-        })),
+        pages: pages.map((page, index) => {
+          const errors = page.results.filter(
+            (result) => result.erroroption === "ERROR"
+          );
+          const warnings = page.results.filter(
+            (result) => result.erroroption === "WARNING"
+          );
+
+          return {
+            pageBreak: '<w:p><w:r><w:br w:type="page"/></w:r></w:p>',
+            index: index + 1,
+            title: page.title,
+            url: page.url,
+            errorcount: errors.length,
+            warningcount: warnings.length,
+            errors: errors.map((error, idx) => ({
+              idx: idx + 1,
+              error: error.error || "오류 없음",
+              errormessage: error.errormessage || "오류 메시지 없음",
+              css_selector: error.item?.css_selector || "없음",
+              body: error.item?.body || "없음",
+            })),
+            warnings: warnings.map((warning, idx) => ({
+              idx: idx + 1,
+              error: warning.error || "경고 없음",
+              errormessage: warning.errormessage || "경고 메시지 없음",
+              css_selector: warning.item?.css_selector || "없음",
+              body: warning.item?.body || "없음",
+            })),
+          };
+        }),
       });
 
       doc.render();
