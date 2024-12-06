@@ -25,18 +25,14 @@ function Result() {
           const selectedPage = response.data.find(
             (page) => page.id.toString() === pageId
           );
-          if (selectedPage) {
-            setPageTitle(selectedPage.title || "제목 없음");
-          }
+          if (selectedPage) setPageTitle(selectedPage.title || "제목 없음");
         }
       } catch (error) {
         console.error("Error fetching page details:", error);
       }
     };
 
-    if (projectId && pageId) {
-      fetchPageDetails();
-    }
+    if (projectId && pageId) fetchPageDetails();
   }, [projectId, pageId]);
 
   useEffect(() => {
@@ -44,12 +40,11 @@ function Result() {
       try {
         const response = await axios.get(`${API.SCANLIST}${pageId}`);
         if (response.status === 200) {
-          setScanResults(response.data);
-          setErrors(
-            response.data.filter((result) => result.erroroption === "ERROR")
-          );
+          const results = response.data;
+          setScanResults(results);
+          setErrors(results.filter((result) => result.erroroption === "ERROR"));
           setWarnings(
-            response.data.filter((result) => result.erroroption === "WARNING")
+            results.filter((result) => result.erroroption === "WARNING")
           );
         }
       } catch (error) {
@@ -57,9 +52,7 @@ function Result() {
       }
     };
 
-    if (pageId) {
-      fetchScanResults();
-    }
+    if (pageId) fetchScanResults();
   }, [pageId]);
 
   const toggleCard = (index) => {
@@ -75,10 +68,9 @@ function Result() {
 
     return sortedResults.map((result, idx) => {
       const isError = result.erroroption === "ERROR";
-      const labelText = isError ? "ERROR" : "WARNING";
       const labelStyle = {
         display: "inline-block",
-        backgroundColor: isError ? "#FFCCCC" : "#FFFF99", // 배경색 : 에러면 빨강, 경고면 노랑
+        backgroundColor: isError ? "#FFCCCC" : "#FFFF99",
         color: "Black",
         border: `1px solid ${isError ? "#990000" : "#CCCC33"}`,
         padding: "5px 10px",
@@ -92,7 +84,7 @@ function Result() {
         <div key={idx} className="mb-3 border-bottom pb-2">
           <p>
             <strong style={labelStyle}>
-              [{idx + 1}] {labelText}
+              [{idx + 1}] {isError ? "ERROR" : "WARNING"}
             </strong>
             {result.errormessage}
           </p>
@@ -131,6 +123,36 @@ function Result() {
     });
   };
 
+  const renderSummary = () => (
+    <>
+      {errors.length > 0 && warnings.length > 0 ? (
+        <>
+          <span style={{ color: "red", fontWeight: "bold" }}>
+            오류 {errors.length}개
+          </span>
+          와 경고 {warnings.length}개가 발견되었습니다.
+        </>
+      ) : errors.length > 0 ? (
+        <>
+          <span style={{ color: "red", fontWeight: "bold" }}>
+            오류 {errors.length}개
+          </span>
+          가 발견되었습니다.
+        </>
+      ) : warnings.length > 0 ? (
+        <>
+          <span style={{ color: "red", fontWeight: "bold" }}>
+            경고 {warnings.length}개
+          </span>
+          가 발견되었습니다.
+        </>
+      ) : (
+        "발견된 오류나 경고가 없습니다."
+      )}
+      <br />각 항목을 눌러 세부 내용을 확인하세요.
+    </>
+  );
+
   return (
     <Container className="d-flex flex-column align-items-center">
       <h5 className="mb-4 text-center">
@@ -138,11 +160,7 @@ function Result() {
           <>
             <strong>{pageTitle}</strong>
             <br />
-            <span style={{ color: "red", fontWeight: "bold" }}>
-              오류 {errors.length}
-            </span>
-            개와 경고 {warnings.length}개가 발견되었습니다.
-            <br />각 항목을 눌러 세부 내용을 확인하세요.
+            {renderSummary()}
           </>
         ) : (
           <>
@@ -154,53 +172,44 @@ function Result() {
       </h5>
 
       <div style={{ width: "80%", maxWidth: "800px", margin: "5px" }}>
-        {errors.length > 0 && (
-          <Card className="mb-3 shadow-sm">
+        {Object.entries(
+          scanResults
+            .sort((a, b) => {
+              const numA = parseInt(a.error.match(/^\d+/)) || 0;
+              const numB = parseInt(b.error.match(/^\d+/)) || 0;
+              return numA - numB;
+            })
+            .reduce((grouped, result) => {
+              if (!grouped[result.error]) grouped[result.error] = [];
+              grouped[result.error].push(result);
+              return grouped;
+            }, {})
+        ).map(([errorTitle, errorDetails], index) => (
+          <Card key={index} className="mb-3 shadow-sm">
             <Card.Header className="d-flex justify-content-between align-items-center">
               <span>
-                <strong>{errors[0]?.error || "오류"}</strong>{" "}
-                <span>(오류 {errors.length}개)</span>
+                <strong>{errorTitle}</strong>{" "}
+                <span>
+                  ({errorDetails[0].erroroption === "ERROR" ? "오류" : "경고"}{" "}
+                  {errorDetails.length}개)
+                </span>
               </span>
               <Button
                 variant="outline-primary"
                 size="sm"
-                onClick={() => toggleCard("errors")}
-                aria-controls="collapse-errors"
-                aria-expanded={openCard["errors"] || false}
+                onClick={() => toggleCard(index)}
+                aria-controls={`collapse-${index}`}
+                aria-expanded={openCard[index] || false}
                 className="card-button"
               >
-                {openCard["errors"] ? "닫기" : "세부 내용 보기"}
+                {openCard[index] ? "닫기" : "세부 내용 보기"}
               </Button>
             </Card.Header>
-            <Collapse in={openCard["errors"]}>
-              <Card.Body>{renderResults(errors)}</Card.Body>
+            <Collapse in={openCard[index]}>
+              <Card.Body>{renderResults(errorDetails)}</Card.Body>
             </Collapse>
           </Card>
-        )}
-
-        {warnings.length > 0 && (
-          <Card className="mb-3 shadow-sm">
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <span>
-                <strong>{warnings[0]?.error || "경고"}</strong>{" "}
-                <span>(경고 {warnings.length}개)</span>
-              </span>
-              <Button
-                variant="outline-primary"
-                size="sm"
-                onClick={() => toggleCard("warnings")}
-                aria-controls="collapse-warnings"
-                aria-expanded={openCard["warnings"] || false}
-                className="card-button"
-              >
-                {openCard["warnings"] ? "닫기" : "세부 내용 보기"}
-              </Button>
-            </Card.Header>
-            <Collapse in={openCard["warnings"]}>
-              <Card.Body>{renderResults(warnings)}</Card.Body>
-            </Collapse>
-          </Card>
-        )}
+        ))}
       </div>
     </Container>
   );
