@@ -113,7 +113,7 @@ function Result() {
               </p>
               <img
                 src={`${API.GETIMAGE}${result.item.colorimg}`}
-                alt="오류 컬러 이미지"
+                alt="이미지"
                 style={{ maxWidth: "100%", marginBottom: "10px" }}
               />
             </div>

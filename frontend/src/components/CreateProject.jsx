@@ -89,8 +89,16 @@ function CreateProject({ show, onHide, onSave }) {
                 <ListGroup.Item
                   key={index}
                   className="d-flex justify-content-between align-items-center"
+                  style={{ overflow: "hidden" }}
                 >
-                  <div>
+                  <div
+                    style={{
+                      flex: 1,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis", // 긴 텍스트 줄임표 표시
+                    }}
+                  >
                     <strong>{page.title || "제목 없음"}</strong> -{" "}
                     {page.pagetype === "URL" ? page.url : "HTML"}
                   </div>
@@ -99,7 +107,7 @@ function CreateProject({ show, onHide, onSave }) {
                     size="sm"
                     onClick={() => handleRemovePage(index)}
                     style={{
-                      flexShrink: 0,
+                      flexShrink: 0, // 버튼 크기 고정
                       width: "60px",
                       textAlign: "center",
                     }}

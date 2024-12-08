@@ -75,13 +75,13 @@ function Project() {
         setShowEditModal(false);
       }
     } catch (error) {
-      console.error("프로젝트 수정 중 오류 발생:", error);
+      console.error("사이트 수정 중 오류 발생:", error);
     }
   };
 
   const handleProjectDelete = async (projectId) => {
     const confirmDelete = window.confirm(
-      "정말로 이 프로젝트를 삭제하시겠습니까?"
+      "정말로 이 사이트를 삭제하시겠습니까?"
     );
     if (!confirmDelete) return;
 
@@ -96,7 +96,7 @@ function Project() {
         );
       }
     } catch (error) {
-      console.error("프로젝트 삭제 중 오류 발생:", error);
+      console.error("사이트 삭제 중 오류 발생:", error);
     }
   };
 
@@ -181,19 +181,19 @@ function Project() {
         );
       })}
 
-      {/* 프로젝트 수정 모달 */}
+      {/* 수정 모달 */}
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>프로젝트 수정</Modal.Title>
+          <Modal.Title>사이트 수정</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedProject && (
             <Form>
               <Form.Group className="mb-3" controlId="formProjectTitle">
-                <Form.Label>프로젝트 이름</Form.Label>
+                <Form.Label>사이트 이름</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="프로젝트 이름을 입력하세요"
+                  placeholder="사이트 이름을 입력하세요"
                   value={selectedProject.title}
                   onChange={(e) =>
                     setSelectedProject({
@@ -204,11 +204,11 @@ function Project() {
                 />
               </Form.Group>
               <Form.Group className="mb-3" controlId="formProjectDescription">
-                <Form.Label>프로젝트 설명</Form.Label>
+                <Form.Label>사이트 설명</Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
-                  placeholder="프로젝트 설명을 입력하세요"
+                  placeholder="사이트 설명을 입력하세요"
                   value={selectedProject.description}
                   onChange={(e) =>
                     setSelectedProject({
