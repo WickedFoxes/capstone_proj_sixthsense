@@ -58,7 +58,7 @@ function CreateProject({ show, onHide, onSave }) {
     <>
       <Modal show={show} onHide={onHide}>
         <Modal.Header closeButton>
-          <Modal.Title>검사 페이지 생성</Modal.Title>
+          <Modal.Title>사이트 생성</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
