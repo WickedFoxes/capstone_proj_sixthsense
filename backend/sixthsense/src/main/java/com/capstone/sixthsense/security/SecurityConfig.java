@@ -1,5 +1,6 @@
 package com.capstone.sixthsense.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,12 +41,18 @@ public class SecurityConfig {
         this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
     }
     
+	@Value("${chrome_ex_path}")
+	String chrome_ex_path;
+	@Value("${frontend_domain_path}")
+	String frontend_domain_path;
+	
+	
     /* CORS 설정을 위한 새로운 메서드 작성  */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("http://localhost:5175");
-        configuration.addAllowedOriginPattern("chrome-extension://*");
+        configuration.addAllowedOriginPattern(frontend_domain_path);
+        configuration.addAllowedOriginPattern(chrome_ex_path);
 //        configuration.addAllowedOrigin("추가 origin 주소");
         configuration.addAllowedMethod("*"); // 모든 HTTP 메소드 허용
         configuration.addAllowedHeader("*"); // 모든 헤더 허용
