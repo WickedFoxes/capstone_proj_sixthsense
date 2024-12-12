@@ -561,17 +561,18 @@ class html_scanner:
         error_message = []
         header_tag = self.soup.find('header')
         header_id_tag = self.soup.select('#header')
-        # 헤더 태그가 없으면 리턴
-        if(not header_tag or not header_id_tag or not tab_selector_dict):
-            return error_message
         
+        # 헤더 태그가 없으면 리턴
+        if((not header_tag and not header_id_tag) or not tab_selector_dict):
+            return error_message
+
         # dict의 value를 기준으로 key를 정렬
         sorted_tab_select = sorted(tab_selector_dict, key=lambda x: tab_selector_dict[x])
         first_tab_select = sorted_tab_select[0]
 
         first_tab_tag = self.soup.select_one(first_tab_select)
         href_attribute = first_tab_tag.get('href')
-        
+
         is_a_tag = first_tab_tag.name == "a"
         is_skip_link = href_attribute and href_attribute[0] == "#"
         is_first_tab_hidden = first_tab_tag in tab_hidden_dict
@@ -613,6 +614,7 @@ class html_scanner:
                 css_selector=first_tab_select
             )
             error_message.append({"scan" : dict(scanDTO), "item" : dict(itemDTO)})
+        
         for error_item in error_message:
             create_item = Api.post_create_item(request_id, error_item["item"])
             create_scan = Api.post_create_scan(request_id, create_item["id"], error_item["scan"])
@@ -628,7 +630,7 @@ class html_scanner:
         title_tag = self.soup.find('title')
         
         # 15-1. title 태그 찾기
-        if not head_tag or not title_tag:
+        if not head_tag or not title_tag or not title_tag.text.strip():
             scanDTO = DTO.ScanDTO(
                 errortype="15.제목 제공",
                 errormessage="<head> 태그에 페이지 내용을 유추할 수 있는 적절한 <title>을 제공해야 한다.",
