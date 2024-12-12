@@ -85,3 +85,9 @@ pip install -r requirement.txt
 ```
 python run.py
 ```
+
+
+### chrome_extention
+1. 크롬브라우저로 chrome://extensions/ 접속
+2. '압축해제된 확장 프로그램을 로드합니다.' 클릭 후, capstone_proj_sixthsense/chrome_extention 불러오기기
+![image](https://github.com/user-attachments/assets/fa8e0386-1586-4876-a56f-0259af6929e0)
