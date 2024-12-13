@@ -20,6 +20,7 @@ class html_scanner:
 
         # href의 도메인이 비어 있는 경우 수정
         for link in links:
+            if link.name == 'script': continue
             if link.has_attr('href'):
                 href = link['href']
                 # URL이 절대 경로가 아니라면 도메인 추가
